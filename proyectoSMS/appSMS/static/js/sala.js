@@ -75,6 +75,8 @@ document.querySelector("#chat-message-submit").onclick = function (e) {
 
 // ###########################################################################################
 
+// Para buscar usuarios en el search
+
 document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.getElementById("search-input");
   const searchButton = document.getElementById("search-button");
