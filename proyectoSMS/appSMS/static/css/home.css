@@ -1,0 +1,21 @@
+/* Estilos generales (PC) */
+body {
+  background-repeat: no-repeat; /* Evita que la imagen se repita */
+  background-size: cover;
+  background-position: center; /* Centra la imagen */
+  height: 100vh; /* Establece la altura al 100% de la ventana */
+  color: white; /* Color del texto para que sea legible sobre la imagen */
+}
+
+.overlay {
+  background-color: rgba(0, 0, 0, 0.2); /* Color de fondo semi-transparente */
+  height: 100%; /* Altura del overlay */
+  display: flex; /* Flexbox para centrar el contenido */
+  align-items: center; /* Centra verticalmente */
+  justify-content: center; /* Centra horizontalmente */
+  text-align: center; /* Alinea el texto al centro */
+}
+
+p.lead {
+  font-weight: bold;
+}

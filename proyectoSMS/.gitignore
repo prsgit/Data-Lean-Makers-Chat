@@ -1,0 +1,9 @@
+# Ignorar el entorno virtual
+datalean/
+
+# Ignorar archivos de Python que no son necesarios
+*.pyc
+__pycache__/
+
+# Ignorar archivos de log
+*.log

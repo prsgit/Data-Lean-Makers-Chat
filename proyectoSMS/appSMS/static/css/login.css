@@ -1,0 +1,42 @@
+.overlay {
+  background-color: rgba(0, 0, 0, 0.2);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.login-container {
+  background-color: #ffffff;
+  border-radius: 15px;
+  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  opacity: 0.95;
+}
+
+/* Media Query para dispositivos móviles */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 20px; /* Reduce aún más el padding en móviles */
+    width: 90%; /* Hace que el ancho sea un poco más amplio en móviles */
+    box-shadow: none; /* Quita la sombra en móviles para un diseño más limpio */
+  }
+
+  h2 {
+    font-size: 1.5em; /* Reduce el tamaño de la fuente del título */
+  }
+
+  .form-label {
+    font-size: 0.9em; /* Reduce el tamaño de la etiqueta */
+  }
+
+  .form-control {
+    font-size: 0.9em; /* Reduce el tamaño de la fuente del input */
+  }
+
+  .btn {
+    width: 100%; /* Hace que el botón ocupe todo el ancho disponible */
+    padding: 10px; /* Aumenta el padding del botón para mejor accesibilidad */
+  }
+}
