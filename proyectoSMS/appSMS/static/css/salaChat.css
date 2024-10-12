@@ -1,7 +1,6 @@
 body {
   background-color: #f4f7f6;
   margin-top: 0;
-  
 }
 
 .container_chat {
@@ -10,7 +9,6 @@ body {
   align-items: center; /* Centra verticalmente */
   height: 100vh; /* Usa la altura completa de la ventana */
 }
-
 
 .card {
   background: #fff;
@@ -80,6 +78,11 @@ body {
 .people-list .status {
   color: #999;
   font-size: 13px;
+}
+
+#user-conectado {
+  color: #1d8ecd;
+  font-size: 14px;
 }
 
 .chat .chat-header {

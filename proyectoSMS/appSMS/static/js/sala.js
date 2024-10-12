@@ -1,3 +1,5 @@
+// configuración del websocket para el sala.html
+
 const protocol = window.location.protocol === "https:" ? "wss://" : "ws://"; // Determinar el protocolo
 const chatSocket = new WebSocket(
   protocol + window.location.host + "/ws/chat/" + roomName + "/" // Conectar al WebSocket usando roomName
@@ -70,3 +72,39 @@ document.querySelector("#chat-message-submit").onclick = function (e) {
     messageInputDom.value = ""; // Limpiar el campo de entrada
   }
 };
+
+// ###########################################################################################
+
+document.addEventListener("DOMContentLoaded", function () {
+  const searchInput = document.getElementById("search-input");
+  const searchButton = document.getElementById("search-button");
+  const userList = document.getElementById("user-list");
+  const users = userList.getElementsByTagName("li");
+  const noResultsMessage = document.getElementById("no-results");
+
+  function filterUsers() {
+    const filter = searchInput.value.toLowerCase();
+    let hasResults = false; // Variable para comprobar si hay resultados
+
+    for (let i = 0; i < users.length; i++) {
+      const userName = users[i]
+        .querySelector(".name")
+        .textContent.toLowerCase();
+      if (userName.includes(filter)) {
+        users[i].style.display = ""; // Muestra el usuario si coincide
+        hasResults = true; // Hay al menos un resultado
+      } else {
+        users[i].style.display = "none"; // Oculta el usuario si no coincide
+      }
+    }
+
+    // Muestra u oculta el mensaje "Sin resultados"
+    noResultsMessage.style.display = hasResults ? "none" : "block";
+  }
+
+  // Busca al escribir en el input
+  searchInput.addEventListener("input", filterUsers);
+
+  // Busca al hacer clic en la lupa
+  searchButton.addEventListener("click", filterUsers);
+});

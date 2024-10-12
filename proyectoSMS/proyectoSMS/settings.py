@@ -119,7 +119,6 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'appSMS/static'),
 ]
-STATIC_ROOT = BASE_DIR / "staticfiles"  # quitar si falla
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

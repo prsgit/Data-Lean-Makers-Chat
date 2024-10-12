@@ -20,16 +20,26 @@
       <div class="col-lg-12">
         <div class="card chat-app">
           <!-- Columna izquierda: Usuarios -->
+          <div id="user-conectado">
+            <span>
+              Usuario conectado: <strong>{{ request.user.username }}</strong>
+            </span>
+          </div>
           <div id="plist" class="people-list">
             <div class="input-group mb-3">
               <div class="input-group-prepend">
-                <span class="input-group-text"
+                <span class="input-group-text" 
                   ><i class="fa fa-search"></i
                 ></span>
               </div>
-              <input type="text" class="form-control" placeholder="Buscar..." />
+              <input
+                type="text"
+                id="search-input"
+                class="form-control"
+                placeholder="Buscar..."
+              />
             </div>
-            <ul class="list-unstyled chat-list mt-2 mb-0">
+            <ul class="list-unstyled chat-list mt-2 mb-0" id="user-list">
               {% for user in users %}
               <li class="clearfix {% if user == other_user %}active{% endif %}">
                 <a
@@ -41,7 +51,10 @@
                     alt="avatar"
                   />
                   <div class="about">
-                    <div class="name">{{ user.username }}</div>
+                    <div class="name">
+                      {{ user.username }} 
+                      {% if user.username == request.user.username %} (tú){% endif %}
+                    </div>
                     <div class="status">
                       <i
                         class="fa fa-circle {% if user == other_user %}online{% else %}offline{% endif %}"
@@ -54,6 +67,7 @@
               </li>
               {% endfor %}
             </ul>
+            <div id="no-results" style="display: none; text-align: center; color: #999999;">sin resultados</div>
           </div>
 
           <!-- Columna derecha: Chat -->
