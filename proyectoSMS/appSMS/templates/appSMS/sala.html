@@ -22,7 +22,7 @@
           <!-- Columna izquierda: Usuarios -->
           <div id="user-conectado">
             <span>
-              Usuario conectado: <strong>{{ request.user.username }}</strong>
+              usuario conectado: <strong>{{ request.user.username }}</strong>
             </span>
           </div>
           <div id="plist" class="people-list">
@@ -36,7 +36,7 @@
                 type="text"
                 id="search-input"
                 class="form-control"
-                placeholder="Buscar..."
+                placeholder="buscar usuario..."
               />
             </div>
             <ul class="list-unstyled chat-list mt-2 mb-0" id="user-list">
@@ -53,7 +53,7 @@
                   <div class="about">
                     <div class="name">
                       {{ user.username }} 
-                      {% if user.username == request.user.username %} (tú){% endif %}
+                      {% if user.username == request.user.username %} (Tú){% endif %}
                     </div>
                     <div class="status">
                       <i

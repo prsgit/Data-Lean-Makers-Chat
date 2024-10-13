@@ -106,7 +106,4 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Busca al escribir en el input
   searchInput.addEventListener("input", filterUsers);
-
-  // Busca al hacer clic en la lupa
-  searchButton.addEventListener("click", filterUsers);
 });

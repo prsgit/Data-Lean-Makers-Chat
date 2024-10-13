@@ -223,8 +223,8 @@ body {
 }
 
 .custom-logout-button {
-  padding: 5px 10px;
-  font-size: 0.8rem;
+  padding: 0px 4px;
+  font-size: 12px;
 }
 
 @media only screen and (max-width: 767px) {
