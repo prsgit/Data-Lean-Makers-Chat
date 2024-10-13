@@ -27,6 +27,29 @@ body {
   top: 0;
   padding: 20px;
   z-index: 7;
+  max-height: 550px; /* Establece una altura máxima */
+  overflow-y: auto; /* Habilita el scroll vertical */
+  overflow-x: hidden; /* Oculta el scroll horizontal */
+}
+
+/* Estilo para el scrollbar */
+.chat-app .people-list::-webkit-scrollbar {
+  width: 8px; /* Ancho del scrollbar */
+}
+
+.chat-app .people-list::-webkit-scrollbar-track {
+  background: #e0e0e0; /* Color del fondo del track */
+  border-radius: 10px; /* Bordes redondeados del track */
+}
+
+.chat-app .people-list::-webkit-scrollbar-thumb {
+  background: #a0a0a0; /* Color del thumb */
+  border-radius: 10px; /* Bordes redondeados del thumb */
+}
+
+/* Efecto hover para el thumb */
+.chat-app .people-list::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Color del thumb al pasar el ratón */
 }
 
 .chat-app .chat {
