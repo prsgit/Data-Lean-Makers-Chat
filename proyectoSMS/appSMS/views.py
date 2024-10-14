@@ -66,6 +66,40 @@ def registro(request):
     return render(request, 'appSMS/registro.html')
 
 
+# @login_required
+# def chat_privado(request, username=None):
+#     User = get_user_model()
+
+#     # Obtener lista de usuarios disponibles + el logeado, menos el admin.
+#     users = User.objects.exclude(username='admin')
+
+#     if username:
+#         try:
+#             other_user = User.objects.get(username=username)
+#         except User.DoesNotExist:
+#             return redirect('appSMS:login')
+
+#         # Genera un nombre de sala único basado en los IDs de usuario
+#         user_ids = sorted([request.user.id, other_user.id])
+#         room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'
+
+#         # Obtener mensajes previos
+#         messages = Message.objects.filter(
+#             room_name=room_name).order_by('timestamp')
+#     else:
+#         other_user = None
+#         room_name = None
+#         messages = []
+
+#     return render(request, 'appSMS/sala.html', {
+#         'users': users,
+#         'other_user': other_user,
+#         'messages': messages,
+#         'room_name': room_name,
+#     })
+
+
+# prueba#####################################################################################
 @login_required
 def chat_privado(request, username=None):
     User = get_user_model()
@@ -80,8 +114,13 @@ def chat_privado(request, username=None):
             return redirect('appSMS:login')
 
         # Genera un nombre de sala único basado en los IDs de usuario
-        user_ids = sorted([request.user.id, other_user.id])
-        room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'
+        if username == request.user.username:
+            # Si el usuario está enviando un mensaje a sí mismo
+            room_name = f'private_chat_{request.user.id}_{request.user.id}'
+        else:
+            # Si el usuario está enviando un mensaje a otro usuario
+            user_ids = sorted([request.user.id, other_user.id])
+            room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'
 
         # Obtener mensajes previos
         messages = Message.objects.filter(

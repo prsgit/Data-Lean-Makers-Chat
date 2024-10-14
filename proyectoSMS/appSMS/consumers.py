@@ -51,8 +51,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         room_name_parts = self.room_name.split('_')
         user_ids = [int(uid) for uid in room_name_parts if uid.isdigit()]
 
-        # Encontrar el ID del otro usuario
-        other_user_id = [uid for uid in user_ids if uid != sender.id][0]
+        # Encontrar el ID del otro usuario, manejando el caso de enviarse a sí mismo
+        other_users = [uid for uid in user_ids if uid != sender.id]
+
+        if not other_users:  # Si el usuario está enviándose un mensaje a sí mismo
+            other_user_id = sender.id  # Establece el ID como el del remitente
+        else:
+            other_user_id = other_users[0]  # Obtén el ID del otro usuario
 
         # Obtener el objeto del otro usuario
         receiver = await database_sync_to_async(User.objects.get)(id=other_user_id)
