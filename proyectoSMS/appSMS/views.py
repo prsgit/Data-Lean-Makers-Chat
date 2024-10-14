@@ -99,57 +99,6 @@ def chat_privado(request, username=None):
     })
 
 
-# a falta de modificar el html este código es para que pueda enviar sms asi mismo tambien
-# @login_required
-# def chat_privado(request, username=None):
-#     User = get_user_model()
-
-#     # Obtener lista de usuarios disponibles + el logeado, menos el admin.
-#     users = User.objects.exclude(username='admin')
-
-#     # Si el usuario se conecta a la sala
-#     if username:
-#         try:
-#             other_user = User.objects.get(username=username)
-#         except User.DoesNotExist:
-#             return redirect('appSMS:login')
-
-#         # Generar un nombre de sala único basado en los IDs de usuario
-#         user_ids = sorted([request.user.id, other_user.id])
-#         room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'
-
-#         # Obtener mensajes previos
-#         messages = Message.objects.filter(
-#             room_name=room_name).order_by('timestamp')
-
-#         # Manejar el envío de mensajes
-#         if request.method == 'POST':
-#             content = request.POST.get('content')
-#             if content:
-#                 # Guardar mensaje en la base de datos (puede ser a sí mismo o a otro usuario)
-#                 Message.objects.create(
-#                     room_name=room_name,
-#                     sender=request.user,
-#                     receiver=other_user if other_user != request.user else request.user,
-#                     content=content
-#                 )
-#                 # Actualizar los mensajes después de enviar
-#                 messages = Message.objects.filter(
-#                     room_name=room_name).order_by('timestamp')
-
-#     else:
-#         other_user = None
-#         room_name = None
-#         messages = []
-
-#     return render(request, 'appSMS/sala.html', {
-#         'users': users,
-#         'other_user': other_user,
-#         'messages': messages,
-#         'room_name': room_name,
-#     })
-
-
 @login_required
 def logout_view(request):
     logout(request)

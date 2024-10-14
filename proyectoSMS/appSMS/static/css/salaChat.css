@@ -250,6 +250,32 @@ body {
   font-size: 12px;
 }
 
+.chat-app .chat-history {
+  max-height: 550px; /* Establece una altura máxima para el área de chat */
+  overflow-y: auto; /* Habilita el scroll vertical */
+  overflow-x: hidden; /* Oculta el scroll horizontal */
+}
+
+/* Estilo para el scrollbar del chat */
+.chat-app .chat-history::-webkit-scrollbar {
+  width: 8px; /* Ancho del scrollbar */
+}
+
+.chat-app .chat-history::-webkit-scrollbar-track {
+  background: #e0e0e0; /* Color del fondo del track */
+  border-radius: 10px; /* Bordes redondeados del track */
+}
+
+.chat-app .chat-history::-webkit-scrollbar-thumb {
+  background: #a0a0a0; /* Color del thumb */
+  border-radius: 10px; /* Bordes redondeados del thumb */
+}
+
+/* Efecto hover para el thumb del chat */
+.chat-app .chat-history::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Color del thumb al pasar el ratón */
+}
+
 @media only screen and (max-width: 767px) {
   .chat-app .people-list {
     height: 465px;
