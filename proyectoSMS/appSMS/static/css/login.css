@@ -8,6 +8,8 @@
 }
 
 .login-container {
+  width: 100%;
+  max-width: 400px;
   background-color: #ffffff;
   border-radius: 15px;
   padding: 40px;
@@ -16,11 +18,10 @@
 }
 
 /* Media Query para dispositivos móviles */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .login-container {
-    padding: 20px; /* Reduce aún más el padding en móviles */
     width: 90%; /* Hace que el ancho sea un poco más amplio en móviles */
-    box-shadow: none; /* Quita la sombra en móviles para un diseño más limpio */
+    height: auto;
   }
 
   h2 {

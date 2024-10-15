@@ -1,45 +1,70 @@
-{% extends 'appSMS/index.html' %}
-{% load static %}
-
-{% block title %}
+{% extends 'appSMS/index.html' %} {% load static %} {% block title %}
 <title>Chat</title>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <link rel="stylesheet" href="{% static 'css/salaChat.css' %}" />
-<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
-
-<div class="container-fluid" style="background-image: url('/static/img/home.jpg'); background-size: cover; height: 100vh; position: relative;">
+<link
+  href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+  rel="stylesheet"
+/>
+<div
+  class="container-fluid chat-container"
+>
   <div class="container">
     <div class="row clearfix">
-      <div class="col-lg-12">
+      <div class="col-lg-12 p-0">
         <div class="card chat-app">
           <!-- Columna izquierda: Usuarios -->
-          <div id="user-conectado">
-            <span>
-              usuario conectado: <strong>{{ request.user.username }}</strong>
-            </span>
-          </div>
+          
           <div id="plist" class="people-list">
+            <div class="d-flex justify-content-between">
+            <div id="user-conectado">
+              <span>
+                usuario conectado: <strong>{{ request.user.username }}</strong>
+              </span>
+            </div>
+            <div class="text-right">
+              <a
+                href="{% url 'appSMS:logout' %}"
+                class="btn btn-danger custom-logout-button mb-2"
+                >Cerrar Sesión</a
+              >
+            </div>
+          </div>
             <div class="input-group mb-3">
               <div class="input-group-prepend">
-                <span class="input-group-text"><i class="fa fa-search"></i></span>
+                <span class="input-group-text" 
+                  ><i class="fa fa-search"></i
+                ></span>
               </div>
-              <input type="text" id="search-input" class="form-control" placeholder="buscar usuario..." />
+              <input
+                type="text"
+                id="search-input"
+                class="form-control"
+                placeholder="buscar usuario..."
+              />
             </div>
             <ul class="list-unstyled chat-list mt-2 mb-0" id="user-list">
               {% for user in users %}
               <li class="clearfix {% if user == other_user %}active{% endif %}">
-                <a href="{% url 'appSMS:chat_privado' username=user.username %}" class="clearfix">
-                  <img src="https://bootdey.com/img/Content/avatar/avatar2.png" alt="avatar" />
+                <a
+                  href="{% url 'appSMS:chat_privado' username=user.username %}"
+                  class="clearfix"
+                >
+                  <img
+                    src="https://bootdey.com/img/Content/avatar/avatar2.png"
+                    alt="avatar"
+                  />
                   <div class="about">
                     <div class="name">
                       {{ user.username }} 
                       {% if user.username == request.user.username %} (Tú){% endif %}
                     </div>
                     <div class="status">
-                      <i class="fa fa-circle {% if user == other_user %}online{% else %}offline{% endif %}"></i>
-                      {% if user == other_user %} en línea {% else %} desconectado {% endif %}
+                      <i
+                        class="fa fa-circle {% if user == other_user %}online{% else %}offline{% endif %}"
+                      ></i>
+                      {% if user == other_user %} en línea {% else %}
+                      desconectado {% endif %}
                     </div>
                   </div>
                 </a>
@@ -54,28 +79,43 @@
             <div class="chat-header clearfix">
               <div class="row">
                 <div class="col-lg-6">
-                  {% if other_user %}
-                  <img src="https://bootdey.com/img/Content/avatar/avatar2.png" alt="avatar" />
+                  {% if other_user%}
+                  <img
+                    src="https://bootdey.com/img/Content/avatar/avatar2.png"
+                    alt="avatar"
+                  />
                   <div class="chat-about">
                     <h6 class="m-b-0">{{ other_user.username }}</h6>
                   </div>
                   {% else %}
-                  <h6 class="m-b-0">Selecciona un usuario para iniciar una conversación.</h6>
+                  <h6 class="m-b-0">
+                    Selecciona un usuario para iniciar una conversación.
+                  </h6>
                   {% endif %}
                 </div>
-                <div class="col-lg-6 hidden-sm text-right">
-                  <a href="{% url 'appSMS:logout' %}" class="btn btn-danger custom-logout-button mb-2">Cerrar Sesión</a>
-                </div>
+                <!-- <div class="col-lg-6 hidden-sm text-right">
+                  <a
+                    href="{% url 'appSMS:logout' %}"
+                    class="btn btn-danger custom-logout-button mb-2"
+                    >Cerrar Sesión</a
+                  >
+                </div> -->
               </div>
             </div>
-            <div class="chat-history" style="height: 400px; overflow-y: auto">
+            <div class="chat-history">
               <ul class="m-b-0" id="chat-log">
                 {% for message in messages %}
                 <li class="clearfix">
-                  <div class="message-data {% if message.sender.username == request.user.username %}text-right{% endif %}">
-                    <span class="message-data-time">{{ message.timestamp|date:"H:i A, j M" }}</span>
+                  <div
+                    class="message-data {% if message.sender.username == request.user.username %}text-right{% endif %}"
+                  >
+                    <span class="message-data-time"
+                      >{{ message.timestamp|date:"H:i A, j M" }}</span
+                    >
                   </div>
-                  <div class="message {% if message.sender.username == request.user.username %}my-message{% else %}other-message float-right{% endif %}">
+                  <div
+                    class="message {% if message.sender.username == request.user.username %}my-message{% else %}other-message float-right{% endif %}"
+                  >
                     <strong>
                       {% if message.sender.username == request.user.username %}
                       Yo: {% else %} {{ message.sender.username }}: {% endif %}
@@ -87,15 +127,25 @@
               </ul>
             </div>
 
-            {% if other_user or request.user.username %}
+            {% if other_user %}
             <div class="chat-message clearfix">
               <div class="input-group mb-0">
                 <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fa fa-send"></i></span>
+                  <span class="input-group-text"
+                    ><i class="fa fa-send"></i
+                  ></span>
                 </div>
-                <input id="chat-message-input" type="text" class="form-control" placeholder="Escribe tu mensaje aquí..." autocomplete="off" />
+                <input
+                  id="chat-message-input"
+                  type="text"
+                  class="form-control"
+                  placeholder="Escribe tu mensaje aquí..."
+                  autocomplete="off"
+                />
                 <div class="input-group-append">
-                  <button id="chat-message-submit" class="btn btn-primary">Enviar</button>
+                  <button id="chat-message-submit" class="btn btn-primary">
+                    Enviar
+                  </button>
                 </div>
               </div>
             </div>
@@ -105,13 +155,11 @@
       </div>
     </div>
   </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  const username = "{{ request.user.username }}";
-  const roomName = "{{ room_name }}";
-</script>
-<script src="{% static 'js/sala.js' %}"></script>
-{% endblock %}
+  {% endblock %} {% block extra_js %}
+  <script>
+    const username = "{{ request.user.username }}";
+    const roomName = "{{ room_name }}";
+  </script>
+  <script src="{% static 'js/sala.js' %}"></script>
+  {% endblock %}
 </div>
