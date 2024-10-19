@@ -1,0 +1,16 @@
+{% extends 'appSMS/home.html' %}{% load static %}{% block title %}
+    <title>Inicio</title>
+    {% endblock %} {% block content %}
+    <link href="{% static 'css/home.css' %}" rel="stylesheet" />
+  </head>
+  <body style="background-image: url('/static/img/home.jpg')">
+    <div class="overlay">
+      <div class="container">
+        <h1 class="mb-4">Chat Data Lean Makers</h1>
+        <p class="lead">
+            <h3>¡Lo sentimos, pero no tienes conexión. Revísala y vuelve a intentarlo!</h3>
+        </p>
+      </div>
+    </div>
+  </body>
+  {% endblock %}

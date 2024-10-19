@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'appSMS',
     'channels',
+    'pwa',
+   
 ]
 
 CHANNEL_LAYERS = {
@@ -130,3 +132,33 @@ LOGIN_URL = 'appSMS:login'  # URL para la página de inicio de sesión
 LOGIN_REDIRECT_URL = 'appSMS:user_list'
 # URL a la que se redirige tras cerrar sesión
 LOGOUT_REDIRECT_URL = 'appSMS:login'
+
+
+# Configuración de PWA
+PWA_APP_NAME = 'Chat'
+PWA_APP_DESCRIPTION = "App de mensajeria en tiempo real"
+PWA_APP_THEME_COLOR = '#000000'
+PWA_APP_BACKGROUND_COLOR = '#FFFFFF'
+PWA_APP_ICONS = [
+    {
+        "src":"/static/img/icon192.png",
+        "sizes":"192x192"
+    },
+     {
+        "src":"/static/img/icon512.png",
+        "sizes":"512x512"
+    },
+]
+
+PWA_APP_ICONS_APPLE = [
+    {
+        "src":"/static/img/icon192.png",
+        "sizes":"192x192"
+    },
+     {
+        "src":"/static/img/icon512.png",
+        "sizes":"512x512"
+    },
+]
+
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR,"serviceworker.js")
