@@ -1,6 +1,6 @@
-{% extends 'appSMS/index.html' %} {% load static %} {% block title %}
-<title>Chat</title>
-{% endblock %} {% block content %}
+{% extends 'appSMS/index.html' %} {% load static %}
+<title>{% block title %}Chat{% endblock %}</title>
+{% block content %}
 <link rel="stylesheet" href="{% static 'css/salaChat.css' %}" />
 <link
   href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"

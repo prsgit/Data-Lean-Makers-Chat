@@ -1,6 +1,6 @@
-{% extends 'appSMS/home.html' %}{% load static %}{% block title %}
-    <title>Inicio</title>
-    {% endblock %} {% block content %}
+{% extends 'appSMS/home.html' %}{% load static %}
+    <title>{% block title %}sin conexión{% endblock %}</title>
+    {% block content %}
     <link href="{% static 'css/home.css' %}" rel="stylesheet" />
   </head>
   <body style="background-image: url('/static/img/home.jpg')">

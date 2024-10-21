@@ -1,3 +1,10 @@
+.container-fluid {
+  background-image: url("/static/img/home.jpg");
+  background-size: cover;
+  height: 100vh;
+  position: relative;
+}
+
 .overlay {
   background-color: rgba(0, 0, 0, 0.2);
   position: absolute;
@@ -17,6 +24,15 @@
   opacity: 0.95;
 }
 
+.login-container h2 {
+  font-family: "Poppins", sans-serif;
+  color: #0d47a1;
+}
+
+.alert span {
+  color: #c62828;
+}
+
 /* Media Query para dispositivos móviles */
 @media (max-width: 768px) {
   .login-container {
@@ -29,7 +45,9 @@
   }
 
   .form-label {
-    font-size: 0.9em; /* Reduce el tamaño de la etiqueta */
+    font-size: 0.9em;
+    font-family: "Poppins", sans-serif;
+    color: #0d47a1;
   }
 
   .form-control {
@@ -39,5 +57,11 @@
   .btn {
     width: 100%; /* Hace que el botón ocupe todo el ancho disponible */
     padding: 10px; /* Aumenta el padding del botón para mejor accesibilidad */
+    background-color: #2e7d32;
+    border: none;
+  }
+
+  .mt-3 {
+    color: #0d47a1;
   }
 }

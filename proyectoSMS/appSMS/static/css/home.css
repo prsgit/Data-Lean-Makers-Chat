@@ -2,9 +2,9 @@
 body {
   background-repeat: no-repeat; /* Evita que la imagen se repita */
   background-size: cover;
-  background-position: center; /* Centra la imagen */
+  background-position: center;
   height: 100vh; /* Establece la altura al 100% de la ventana */
-  color: white; /* Color del texto para que sea legible sobre la imagen */
+  color: white;
 }
 
 .overlay {
@@ -16,6 +16,7 @@ body {
   text-align: center; /* Alinea el texto al centro */
 }
 
-p.lead, p.lead h3 {
+p.lead,
+p.lead h3 {
   font-weight: bold;
 }
