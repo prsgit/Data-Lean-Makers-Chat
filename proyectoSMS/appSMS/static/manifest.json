@@ -1,7 +1,7 @@
 {
   "name": "Chat",
   "description": "App de mensajería en tiempo real",
-  "start_url": "http://localhost:8000/",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#FFFFFF",
