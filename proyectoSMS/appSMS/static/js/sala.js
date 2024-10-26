@@ -1,9 +1,11 @@
-// configuración del websocket para el sala.html
-
+// Configuración del WebSocket para el sala.html
 const protocol = window.location.protocol === "https:" ? "wss://" : "ws://"; // Determinar el protocolo
-const chatSocket = new WebSocket(
-  protocol + window.location.host + "/ws/chat/" + roomName + "/" // Conectar al WebSocket usando roomName
-);
+const isGroupChat = typeof groupName !== "undefined"; // Verificar si es un grupo
+const socketEndpoint = isGroupChat
+  ? `/ws/group/${groupName}/`
+  : `/ws/chat/${roomName}/`; // Determinar la URL del WebSocket según el tipo de chat
+
+const chatSocket = new WebSocket(protocol + window.location.host + socketEndpoint);
 
 chatSocket.onopen = function (e) {
   console.log("Conexión WebSocket abierta");
@@ -15,7 +17,7 @@ chatSocket.onerror = function (e) {
 
 // Función para agregar mensajes al chat
 function appendMessage(sender, message, isMyMessage) {
-  const chatLog = document.querySelector("#chat-log"); // contenedor de mensajes
+  const chatLog = document.querySelector("#chat-log"); // Contenedor de mensajes
   const newMessage = document.createElement("li"); // Crear un nuevo elemento de lista para el mensaje
 
   // Obtener la hora actual para mostrarla junto al mensaje
@@ -29,9 +31,7 @@ function appendMessage(sender, message, isMyMessage) {
       <div class="message-data ${isMyMessage ? "text-right" : ""}">
         <span class="message-data-time">${timeString}</span>
       </div>
-      <div class="message ${
-        isMyMessage ? "my-message" : "other-message float-right"
-      }">
+      <div class="message ${isMyMessage ? "my-message" : "other-message float-right"}">
         <strong>${isMyMessage ? "Yo" : sender}:</strong> ${message}
       </div>
     `;
@@ -40,6 +40,7 @@ function appendMessage(sender, message, isMyMessage) {
   chatLog.scrollTop = chatLog.scrollHeight; // Desplazar hacia abajo para mostrar el nuevo mensaje
 }
 
+// Recibir mensajes del servidor
 chatSocket.onmessage = function (e) {
   const data = JSON.parse(e.data); // Parsear el mensaje recibido
   appendMessage(data.sender, data.message, data.sender === username); // Añadir el mensaje al chat
@@ -50,53 +51,71 @@ chatSocket.onclose = function (e) {
 };
 
 // Manejo del enfoque en el campo de entrada
-document.querySelector("#chat-message-input").focus();
-document.querySelector("#chat-message-input").onkeyup = function (e) {
-  if (e.keyCode === 13) {
-    // Si se presiona Enter
-    document.querySelector("#chat-message-submit").click(); // Simula clic en enviar
-  }
-};
+const messageInput = document.querySelector("#chat-message-input");
+const messageSubmit = document.querySelector("#chat-message-submit");
 
-document.querySelector("#chat-message-submit").onclick = function (e) {
-  const messageInputDom = document.querySelector("#chat-message-input"); // Selector del campo de entrada
-  const message = messageInputDom.value; // Obtener el valor del mensaje
+if (messageInput) {
+  messageInput.focus();
+  messageInput.onkeyup = function (e) {
+    if (e.keyCode === 13) {
+      // Si se presiona Enter
+      messageSubmit.click(); // Simula clic en enviar
+    }
+  };
 
-  // Validación para evitar enviar mensajes vacíos o solo espacios
-  if (message.trim() !== "") {
-    chatSocket.send(
-      JSON.stringify({
-        message: message, // Enviar el mensaje al servidor
-      })
-    );
-    messageInputDom.value = ""; // Limpiar el campo de entrada
-  }
-};
+  messageSubmit.onclick = function (e) {
+    const message = messageInput.value.trim(); // Obtener el valor del mensaje
+
+    // Validación para evitar enviar mensajes vacíos
+    if (message !== "") {
+      chatSocket.send(
+        JSON.stringify({
+          message: message, // Enviar el mensaje al servidor
+        })
+      );
+      messageInput.value = ""; // Limpiar el campo de entrada
+    }
+  };
+}
 
 // ###########################################################################################
 
-// Para buscar usuarios en el search
-
+// Búsqueda de usuarios y grupos en el input de búsqueda
 document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.getElementById("search-input");
-  const searchButton = document.getElementById("search-button");
   const userList = document.getElementById("user-list");
-  const users = userList.getElementsByTagName("li");
+  const groupList = document.getElementById("group-list");
   const noResultsMessage = document.getElementById("no-results");
 
-  function filterUsers() {
+  if (!userList) {
+    console.error("No se encontró la lista de usuarios");
+    return;
+  }
+
+  const users = userList.getElementsByTagName("li");
+  const groups = groupList ? groupList.getElementsByTagName("li") : [];
+
+  function filterItems() {
     const filter = searchInput.value.toLowerCase();
     let hasResults = false; // Variable para comprobar si hay resultados
 
+    // Filtrar usuarios
     for (let i = 0; i < users.length; i++) {
-      const userName = users[i]
-        .querySelector(".name")
-        .textContent.toLowerCase();
-      if (userName.includes(filter)) {
-        users[i].style.display = ""; // Muestra el usuario si coincide
-        hasResults = true; // Hay al menos un resultado
-      } else {
-        users[i].style.display = "none"; // Oculta el usuario si no coincide
+      const userNameElement = users[i].querySelector(".name");
+      if (userNameElement) {
+        const userName = userNameElement.textContent.toLowerCase();
+        users[i].style.display = userName.includes(filter) ? "" : "none"; // Mostrar u ocultar según coincidencia
+        hasResults = hasResults || (userName.includes(filter)); // Actualizar hasResults
+      }
+    }
+
+    // Filtrar grupos
+    for (let i = 0; i < groups.length; i++) {
+      const groupNameElement = groups[i].querySelector(".name");
+      if (groupNameElement) {
+        const groupName = groupNameElement.textContent.toLowerCase();
+        groups[i].style.display = groupName.includes(filter) ? "" : "none"; // Mostrar u ocultar según coincidencia
+        hasResults = hasResults || (groupName.includes(filter)); // Actualizar hasResults
       }
     }
 
@@ -105,5 +124,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Busca al escribir en el input
-  searchInput.addEventListener("input", filterUsers);
+  if (searchInput) {
+    searchInput.addEventListener("input", filterItems);
+  }
 });

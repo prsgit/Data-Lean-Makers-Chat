@@ -1,0 +1,17 @@
+{% extends 'appSMS/index.html' %}
+<title>{% block title %}Crear Grupo{% endblock %}</title>
+{% block content %}
+<h2>Crear Nuevo Grupo</h2>
+<form method="post">
+    {% csrf_token %}
+    <label for="group_name">Nombre del Grupo:</label>
+    <input type="text" name="group_name" id="group_name" required>
+    
+    <label>Selecciona Miembros:</label>
+    {% for user in users %}
+        <input type="checkbox" name="members" value="{{ user.id }}"> {{ user.username }} <br>
+    {% endfor %}
+    
+    <button type="submit">Crear Grupo</button>
+</form>
+{% endblock %}

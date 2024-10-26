@@ -9,4 +9,6 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('chat/<str:username>/', views.chat_privado, name='chat_privado'),
+    path('crear_grupo/', views.create_group, name='crear_grupo'),
+    path('grupo_chat/<str:group_name>/', views.group_chat, name='chat_grupal'), 
 ]
