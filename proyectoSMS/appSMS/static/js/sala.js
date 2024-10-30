@@ -43,7 +43,9 @@ function appendMessage(sender, message, isMyMessage) {
 // Recibir mensajes del servidor
 chatSocket.onmessage = function (e) {
   const data = JSON.parse(e.data); // Parsear el mensaje recibido
-  appendMessage(data.sender, data.message, data.sender === username); // Añadir el mensaje al chat
+  if (data.message && data.sender) { // Verificar que el mensaje y el remitente estén presentes
+    appendMessage(data.sender, data.message, data.sender === username); // Añadir el mensaje al chat
+  }
 };
 
 chatSocket.onclose = function (e) {
@@ -58,7 +60,6 @@ if (messageInput) {
   messageInput.focus();
   messageInput.onkeyup = function (e) {
     if (e.keyCode === 13) {
-      // Si se presiona Enter
       messageSubmit.click(); // Simula clic en enviar
     }
   };

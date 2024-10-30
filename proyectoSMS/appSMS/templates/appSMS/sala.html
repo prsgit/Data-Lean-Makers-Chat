@@ -13,7 +13,6 @@
       <div class="col-lg-12 p-0">
         <div class="card chat-app">
           <!-- Columna izquierda: Usuarios y Grupos -->
-
           <div id="plist" class="people-list">
             <div class="d-flex justify-content-between">
               <div id="user-conectado">
@@ -31,9 +30,9 @@
             </div>
             <div class="input-group mb-3">
               <div class="input-group-prepend">
-                <span class="input-group-text"
-                  ><i class="fa fa-search"></i
-                ></span>
+                <span class="input-group-text">
+                  <i class="fa fa-search"></i>
+                </span>
               </div>
               <input
                 type="text"
@@ -188,7 +187,8 @@
 {% block extra_js %}
 <script>
     const username = "{{ request.user.username }}";
-    const roomName = "{{ room_name }}";
+    const roomName = "{{ room_name }}"; // Asegúrate de que room_name esté definido correctamente
+    const groupName = "{% if selected_group %}{{ selected_group.name }}{% endif %}"; // Agregado para identificar si es un grupo
 </script>
 <script src="{% static 'js/sala.js' %}"></script>
 {% endblock %}

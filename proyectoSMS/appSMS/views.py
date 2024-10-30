@@ -66,44 +66,6 @@ def registro(request):
     return render(request, 'appSMS/registro.html')
 
 
-# @login_required
-# def chat_privado(request, username=None):
-#     User = get_user_model()
-
-#     # Obtener lista de usuarios disponibles + el logeado, menos el admin.
-#     users = User.objects.exclude(username='admin')
-
-#     if username:
-#         try:
-#             other_user = User.objects.get(username=username)
-#         except User.DoesNotExist:
-#             return redirect('appSMS:login')
-
-#         # Genera un nombre de sala único basado en los IDs de usuario
-#         if username == request.user.username:
-#             # Si el usuario está enviando un mensaje a sí mismo
-#             room_name = f'private_chat_{request.user.id}_{request.user.id}'
-#         else:
-#             # Si el usuario está enviando un mensaje a otro usuario
-#             user_ids = sorted([request.user.id, other_user.id])
-#             room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'
-
-#         # Obtener mensajes previos
-#         messages = Message.objects.filter(
-#             room_name=room_name).order_by('timestamp')
-#     else:
-#         other_user = None
-#         room_name = None
-#         messages = []
-
-#     return render(request, 'appSMS/sala.html', {
-#         'users': users,
-#         'other_user': other_user,
-#         'messages': messages,
-#         'room_name': room_name,
-
-#     })
-
 @login_required
 def chat_privado(request, username=None):
     User = get_user_model()
@@ -185,25 +147,43 @@ def create_group(request):
 
 @login_required
 def group_chat(request, group_name):
-    group = get_object_or_404(GroupChat, name=group_name)  # Asumiendo que tienes un campo 'name' en tu modelo GroupChat
-    
+    group = get_object_or_404(GroupChat, name=group_name)
+
     if request.user not in group.members.all():
         return redirect('appSMS:group_list')  # Redirige si no es miembro del grupo
 
-    # Obtener lista de usuarios disponibles + el logeado, menos el admin.
-    User = get_user_model()
     users = User.objects.exclude(username='admin')
-
-    # Obtener los grupos en los que el usuario está asociado
     groups = GroupChat.objects.filter(members=request.user)
-
-    # Obtener mensajes del grupo
     messages = GroupMessage.objects.filter(group=group).order_by('timestamp')
 
+    if request.method == "POST":
+        content = request.POST.get("content")
+        if content:  # Verifica si el contenido no está vacío
+            GroupMessage.objects.create(group=group, sender=request.user, content=content)
+            messages.success(request, "Mensaje enviado con éxito.")
+        else:
+            messages.error(request, "No se puede enviar un mensaje vacío.")
+        return redirect('appSMS:group_chat', group_name=group.name)
+
     return render(request, 'appSMS/sala.html', {
-        'users': users,  # Añadir la lista de usuarios
+        'users': users,
         'messages': messages,
-        'room_name': f'group_chat_{group.id}',  # Esto sigue usando group.id
-        'groups': groups,  # Añadir grupos aquí
-        'selected_group': group,  # El grupo seleccionado
+        'room_name': f'group_chat_{group.id}',
+        'groups': groups,
+        'selected_group': group,
     })
+
+
+
+# @login_required
+# def send_group_message(request, group_name):
+#     group = get_object_or_404(GroupChat, name=group_name)
+    
+#     if request.method == "POST":
+#         content = request.POST.get("content")
+#         # Crear un nuevo mensaje del grupo
+#         GroupMessage.objects.create(group=group, sender=request.user, content=content)
+#         messages.success(request, "Mensaje enviado con éxito.")
+#         return redirect('appSMS:group_chat', group_name=group.name)
+
+#     return redirect('appSMS:group_chat', group_name=group.name)
