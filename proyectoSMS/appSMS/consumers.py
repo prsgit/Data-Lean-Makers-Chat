@@ -6,7 +6,7 @@ from .models import Message, GroupChat, GroupMessage
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_name']  # Asegúrate de que este valor es dinámico
+        self.room_name = self.scope['url_route']['kwargs']['room_name'] 
         self.user = self.scope['user']
         print(f"Intentando conectar: usuario={self.user}")
 
@@ -15,14 +15,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
-        # Determinar si es un chat grupal o privado comprobando la existencia del grupo
+        # comprueba si es un chat grupal, un chat privado o la existencia del grupo
         try:
-            # Intentamos obtener un grupo con el nombre de la sala
+            # obtener un grupo con el nombre de la sala
             self.group = await database_sync_to_async(GroupChat.objects.get)(name=self.room_name)
             self.room_group_name = f"group_chat_{self.room_name}"
             print(f"Conectado al chat grupal: {self.group.name}")
         except GroupChat.DoesNotExist:
-            # Si no existe el grupo, asumimos que es un chat privado
+            # Si no existe el grupo, se asume que es un chat privado
             self.room_group_name = f"chat_{self.room_name}"
             self.group = None
             print(f"Conectado al chat privado: {self.room_group_name}")
@@ -48,9 +48,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         sender = self.user
         User = get_user_model()
 
-        # Verificar si estamos en un chat grupal o privado
+        # comprueba si estamos en un chat grupal o privado
         if self.group:
-            # Lógica para mensajes grupales
+            # mensajes grupales
             await database_sync_to_async(GroupMessage.objects.create)(
                 group=self.group,
                 sender=sender,
@@ -58,7 +58,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             print(f"Mensaje enviado al grupo {self.room_name} por {sender.username}")
         else:
-            # Lógica para mensajes privados (separando IDs de usuarios)
+            # mensajes privados (separando IDs de usuarios)
             room_name_parts = self.room_name.split('_')
             user_ids = [int(uid) for uid in room_name_parts if uid.isdigit()]
             other_users = [uid for uid in user_ids if uid != sender.id]
