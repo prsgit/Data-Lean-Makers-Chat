@@ -61,10 +61,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # mensajes privados (separando IDs de usuarios)
             room_name_parts = self.room_name.split('_')
             user_ids = [int(uid) for uid in room_name_parts if uid.isdigit()]
-            other_users = [uid for uid in user_ids if uid != sender.id]
+            other_users = [uid for uid in user_ids if uid != sender.id] #excluye al remitente
             other_user_id = other_users[0] if other_users else sender.id
             receiver = await database_sync_to_async(User.objects.get)(id=other_user_id)
 
+            # crea el mensaje
             await database_sync_to_async(Message.objects.create)(
                 room_name=self.room_name,
                 sender=sender,
@@ -73,7 +74,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             print(f"Mensaje enviado al usuario {receiver.username} en la sala {self.room_name}")
 
-        # Enviar el mensaje al grupo
+        # envía el mensaje al grupo
         await self.channel_layer.group_send(
             self.room_group_name,
             {
