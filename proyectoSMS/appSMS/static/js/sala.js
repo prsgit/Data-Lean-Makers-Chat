@@ -1,12 +1,20 @@
 // Configuración del WebSocket para el sala.html
-const protocol = window.location.protocol === "https:" ? "wss://" : "ws://"; // Determinar el protocolo
-const isGroupChat = typeof groupName !== "undefined"; // Verificar si es un grupo
-const socketEndpoint = isGroupChat
-  ? `/ws/group/${groupName}/`
-  : `/ws/chat/${roomName}/`; // Determinar la URL del WebSocket según el tipo de chat
+const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 
-const chatSocket = new WebSocket(protocol + window.location.host + socketEndpoint);
+// Verificar si es un chat grupal o privado
+const isGroupChat = typeof groupName !== 'undefined' && groupName !== null && groupName !== "";
 
+// ruta de conexión 
+let chatSocket;
+if (isGroupChat) {
+  chatSocket = new WebSocket(protocol + window.location.host + `/ws/group/${groupName}/`);
+} else if (typeof roomName !== 'undefined' && roomName !== null && roomName !== "") {
+  chatSocket = new WebSocket(protocol + window.location.host + `/ws/chat/${roomName}/`);
+} else {
+  console.error("No se puede establecer la conexión WebSocket: los datos no son válidos.");
+}
+
+// Conexión WebSocket abierta
 chatSocket.onopen = function (e) {
   console.log("Conexión WebSocket abierta");
 };
@@ -17,16 +25,13 @@ chatSocket.onerror = function (e) {
 
 // Función para agregar mensajes al chat
 function appendMessage(sender, message, isMyMessage) {
-  const chatLog = document.querySelector("#chat-log"); // Contenedor de mensajes
-  const newMessage = document.createElement("li"); // Crear un nuevo elemento de lista para el mensaje
-
-  // Obtener la hora actual para mostrarla junto al mensaje
+  const chatLog = document.querySelector("#chat-log");
+  const newMessage = document.createElement("li");
   const currentTime = new Date();
   const hours = currentTime.getHours().toString().padStart(2, "0");
   const minutes = currentTime.getMinutes().toString().padStart(2, "0");
   const timeString = `${hours}:${minutes}`;
 
-  // HTML para el nuevo mensaje
   newMessage.innerHTML = `
       <div class="message-data ${isMyMessage ? "text-right" : ""}">
         <span class="message-data-time">${timeString}</span>
@@ -35,16 +40,16 @@ function appendMessage(sender, message, isMyMessage) {
         <strong>${isMyMessage ? "Yo" : sender}:</strong> ${message}
       </div>
     `;
-
-  chatLog.appendChild(newMessage); // Añadir el nuevo mensaje al log de chat
-  chatLog.scrollTop = chatLog.scrollHeight; // Desplazar hacia abajo para mostrar el nuevo mensaje
+  
+  chatLog.appendChild(newMessage);
+  chatLog.scrollTop = chatLog.scrollHeight;
 }
 
 // Recibir mensajes del servidor
 chatSocket.onmessage = function (e) {
-  const data = JSON.parse(e.data); // Parsear el mensaje recibido
-  if (data.message && data.sender) { // Verificar que el mensaje y el remitente estén presentes
-    appendMessage(data.sender, data.message, data.sender === username); // Añadir el mensaje al chat
+  const data = JSON.parse(e.data);
+  if (data.message && data.sender) {
+    appendMessage(data.sender, data.message, data.sender === username);
   }
 };
 
@@ -60,24 +65,23 @@ if (messageInput) {
   messageInput.focus();
   messageInput.onkeyup = function (e) {
     if (e.keyCode === 13) {
-      messageSubmit.click(); // Simula clic en enviar
+      messageSubmit.click();
     }
   };
 
   messageSubmit.onclick = function (e) {
-    const message = messageInput.value.trim(); // Obtener el valor del mensaje
-
-    // Validación para evitar enviar mensajes vacíos
+    const message = messageInput.value.trim();
     if (message !== "") {
       chatSocket.send(
         JSON.stringify({
-          message: message, // Enviar el mensaje al servidor
+          message: message,
         })
       );
-      messageInput.value = ""; // Limpiar el campo de entrada
+      messageInput.value = "";
     }
   };
 }
+
 
 // ###########################################################################################
 
@@ -129,3 +133,82 @@ document.addEventListener("DOMContentLoaded", function () {
     searchInput.addEventListener("input", filterItems);
   }
 });
+
+
+
+
+// ESTE CÓDIGO FALLA , NO GUARDA LOS SMS ENVAIDOS POR UN GRUPO.
+// const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+
+// // Verificar si es un chat grupal o privado (se espera que `groupName` o `roomName` estén definidos)
+// const isGroupChat = typeof groupName !== 'undefined' && groupName !== null;
+// const chatSocket = new WebSocket(
+//   protocol + window.location.host + (isGroupChat ? `/ws/group/${groupName}/` : `/ws/chat/${roomName}/`)
+// );
+
+// chatSocket.onopen = function (e) {
+//   console.log("Conexión WebSocket abierta");
+// };
+
+// chatSocket.onerror = function (e) {
+//   console.error("Error en la conexión WebSocket: ", e);
+// };
+
+// // Función para agregar mensajes al chat
+// function appendMessage(sender, message, isMyMessage) {
+//   const chatLog = document.querySelector("#chat-log");
+//   const newMessage = document.createElement("li");
+//   const currentTime = new Date();
+//   const hours = currentTime.getHours().toString().padStart(2, "0");
+//   const minutes = currentTime.getMinutes().toString().padStart(2, "0");
+//   const timeString = `${hours}:${minutes}`;
+
+//   newMessage.innerHTML = `
+//       <div class="message-data ${isMyMessage ? "text-right" : ""}">
+//         <span class="message-data-time">${timeString}</span>
+//       </div>
+//       <div class="message ${isMyMessage ? "my-message" : "other-message float-right"}">
+//         <strong>${isMyMessage ? "Yo" : sender}:</strong> ${message}
+//       </div>
+//     `;
+  
+//   chatLog.appendChild(newMessage);
+//   chatLog.scrollTop = chatLog.scrollHeight;
+// }
+
+// // Recibir mensajes del servidor
+// chatSocket.onmessage = function (e) {
+//   const data = JSON.parse(e.data);
+//   if (data.message && data.sender) {
+//     appendMessage(data.sender, data.message, data.sender === username);
+//   }
+// };
+
+// chatSocket.onclose = function (e) {
+//   console.error("Chat socket cerrado inesperadamente");
+// };
+
+// // Manejo del enfoque en el campo de entrada
+// const messageInput = document.querySelector("#chat-message-input");
+// const messageSubmit = document.querySelector("#chat-message-submit");
+
+// if (messageInput) {
+//   messageInput.focus();
+//   messageInput.onkeyup = function (e) {
+//     if (e.keyCode === 13) {
+//       messageSubmit.click();
+//     }
+//   };
+
+//   messageSubmit.onclick = function (e) {
+//     const message = messageInput.value.trim();
+//     if (message !== "") {
+//       chatSocket.send(
+//         JSON.stringify({
+//           message: message,
+//         })
+//       );
+//       messageInput.value = "";
+//     }
+//   };
+// }
