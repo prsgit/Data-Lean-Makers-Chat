@@ -14,12 +14,18 @@
         <div class="card chat-app">
           <!-- Columna izquierda: Usuarios y Grupos -->
           <div id="plist" class="people-list">
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between align-items-center usuarios">
               <div id="user-conectado">
                 <span>
                   Usuario: <strong>{{ request.user.username }}</strong>
                 </span>
+              </div> 
+              <div class="icon-add-grupo" title="Crear Grupo">
+                <a href="{% url 'appSMS:crear_grupo' %}">
+                  <i class="fa-solid fa-user-group fa-xl icon icono"></i>
+                </a>
               </div>
+              
               <div class="text-right">
                 <a
                   href="{% url 'appSMS:logout' %}"

@@ -31,7 +31,6 @@
 
 .form-label {
   font-family: "Poppins", sans-serif;
-  color: #0d47a1;
 }
 
 .btn {
@@ -39,9 +38,7 @@
   border: none;
 }
 
-.mt-3 span {
-  color: #0d47a1;
-}
+
 
 .mt-3 a {
   color: #2e7d32;

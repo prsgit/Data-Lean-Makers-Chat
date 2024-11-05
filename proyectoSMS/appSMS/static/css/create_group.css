@@ -1,0 +1,102 @@
+body, html {
+    height: 100%; /* Asegura que el body y html ocupen el 100% de la altura */
+    margin: 0; /* Elimina el margen predeterminado */
+    background-image: url("/static/img/home.jpg");
+    background-size: cover;
+    height: 100vh;
+    position: relative;
+}
+
+.create-group-container {
+    width: 100%;
+    max-width: 400px; 
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    opacity: 0.95;
+    position: absolute; 
+    top: 45%; /* Posición vertical */
+    left: 50%; /* Posición horizontal */
+    transform: translate(-50%, -50%); /* Centrado */
+}
+
+.create-group-container h2 {
+    font-family: "Poppins", sans-serif;
+    color: #0d47a1; 
+}
+
+.form-label {
+    font-size: 1em; 
+    font-family: "Poppins", sans-serif;
+}
+
+.form-control {
+    font-size: 1em; 
+}
+
+.form-check-label {
+    font-family: "Poppins", sans-serif;
+}
+
+.btn.btn-success {
+    background-color: #2e7d32;
+    border: none;
+    color: white; 
+}
+
+.btn.btn-danger {
+    background-color: #DC3545;
+    border: none;
+    color: white; 
+}
+
+/* Estilo para el scrollbar de la lista de miembros */
+.member-list {
+    max-height: 150px; /* Altura máxima para permitir el desplazamiento */
+    overflow-y: auto; /* Habilitar el desplazamiento vertical */
+}
+
+/* Estilo para el scrollbar */
+.member-list::-webkit-scrollbar {
+    width: 8px; /* Ancho del scrollbar */
+}
+
+.member-list::-webkit-scrollbar-track {
+    background: #e0e0e0; /* Color del fondo del track */
+    border-radius: 10px; /* Bordes redondeados del track */
+}
+
+.member-list::-webkit-scrollbar-thumb {
+    background: #a0a0a0; /* Color del thumb */
+    border-radius: 10px; /* Bordes redondeados del thumb */
+}
+
+/* Efecto hover para el thumb */
+.member-list::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Color del thumb al pasar el ratón */
+}
+
+/* Media Query para dispositivos móviles */
+@media (max-width: 768px) {
+    .create-group-container {
+        width: 90%; /*el ancho es un poco más amplio */
+        height: auto; /*el contenedor se ajusta automáticamente */
+    }
+
+    .create-group-container h2 {
+        font-size: 1.5em; 
+    }
+
+    .form-label {
+        font-size: 0.9em; 
+    }
+
+    .form-control {
+        font-size: 0.9em;
+    }
+
+    .btn {
+        padding: 10px; 
+    }
+}

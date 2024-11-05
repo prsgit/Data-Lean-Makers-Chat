@@ -128,10 +128,15 @@ def create_group(request):
         group_name = request.POST.get("group_name")
         members = request.POST.getlist("members")
 
+        # Verificar si se ha seleccionado al menos un miembro
+        if not members:
+            messages.error(request, "Debes elegir al menos un miembro")
+            return redirect('appSMS:crear_grupo')
+
         # Verificar si el grupo ya existe
         if GroupChat.objects.filter(name=group_name).exists():
             messages.error(request, "El grupo ya existe.")
-            return redirect('appSMS:crear_grupo')  # Redirige de vuelta a la página de creación de grupo
+            return redirect('appSMS:crear_grupo')
 
         # Crear el nuevo grupo si no existe
         group = GroupChat.objects.create(name=group_name)
@@ -140,9 +145,8 @@ def create_group(request):
         
         return redirect('appSMS:chat_grupal', group_name=group.name)
 
-
-    # Excluir al usuario que está creando el grupo de la lista de miembros disponibles
-    users = User.objects.exclude(id=request.user.id)
+    # Excluye al admin y al que está creando el grupo
+    users = User.objects.exclude(id=request.user.id).exclude(username='admin') 
     return render(request, 'appSMS/create_group.html', {'users': users})
 
 @login_required
@@ -172,18 +176,3 @@ def group_chat(request, group_name):
         'groups': groups,
         'selected_group': group,
     })
-
-
-
-# @login_required
-# def send_group_message(request, group_name):
-#     group = get_object_or_404(GroupChat, name=group_name)
-    
-#     if request.method == "POST":
-#         content = request.POST.get("content")
-#         # Crear un nuevo mensaje del grupo
-#         GroupMessage.objects.create(group=group, sender=request.user, content=content)
-#         messages.success(request, "Mensaje enviado con éxito.")
-#         return redirect('appSMS:group_chat', group_name=group.name)
-
-#     return redirect('appSMS:group_chat', group_name=group.name)

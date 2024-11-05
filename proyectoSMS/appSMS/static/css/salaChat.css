@@ -121,6 +121,27 @@ body {
   font-size: 14px;
 }
 
+.usuarios{
+  flex: 1; /* Asegura que cada elemento ocupe el mismo espacio horizontal */
+  text-align: center; /* Centra el contenido de cada div */
+}
+
+.icon-add-grupo {
+  text-align: center;
+  margin-top: -10px;
+  cursor: pointer;
+}
+
+.icono{
+  color: #74C0FC;
+  transition: color 0.3s;  
+}
+
+.icono:hover {
+  color: #007BFF; 
+}
+
+
 #user-list {
   overflow-y: scroll;
   max-height: 435px;
