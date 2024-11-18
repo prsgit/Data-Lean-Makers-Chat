@@ -27,7 +27,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.group = None
             print(f"Conectado al chat privado: {self.room_group_name}")
 
-        # Unirse al grupo
+        #  Añadir el canal del usuario al grupo correspondiente (grupo de chat o chat privado)
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
@@ -35,6 +35,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.accept()
         print(f"Usuario {self.user.username} conectado a la sala {self.room_group_name}")
 
+    # salir del canal
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
             self.room_group_name,
@@ -42,15 +43,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
         print(f"Usuario {self.user.username} desconectado de la sala {self.room_group_name}")
 
+    # maneja los mensajes enviados por el cliente al servidor
     async def receive(self, text_data):
-        data = json.loads(text_data)
+        data = json.loads(text_data) #convierte el texto JSON en un diccionario de python
         message = data.get('message', '')
         sender = self.user
         User = get_user_model()
 
         # comprueba si estamos en un chat grupal o privado
         if self.group:
-            # mensajes grupales
+            # si estamos en un grupo, se guarda el mensaje en la bbd como un mensaje grupal
             await database_sync_to_async(GroupMessage.objects.create)(
                 group=self.group,
                 sender=sender,
@@ -58,14 +60,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             print(f"Mensaje enviado al grupo {self.room_name} por {sender.username}")
         else:
-            # mensajes privados (separando IDs de usuarios)
+            # mensaje privado: el mensaje es para un usuario específico (separando IDs de usuarios)
             room_name_parts = self.room_name.split('_')
-            user_ids = [int(uid) for uid in room_name_parts if uid.isdigit()]
-            other_users = [uid for uid in user_ids if uid != sender.id] #excluye al remitente
-            other_user_id = other_users[0] if other_users else sender.id
-            receiver = await database_sync_to_async(User.objects.get)(id=other_user_id)
+            user_ids = [int(uid) for uid in room_name_parts if uid.isdigit()] #filtra el nombre de la sala y coge solo los números (IDs de los usuarios)
+            other_users = [uid for uid in user_ids if uid != sender.id] #excluye al remitente 
+            other_user_id = other_users[0] if other_users else sender.id #obtiene el id del receptor
+            receiver = await database_sync_to_async(User.objects.get)(id=other_user_id) #consulta la bbd y obtiene el destinatario del mensaje
 
-            # crea el mensaje
+            # crea el mensaje privado
             await database_sync_to_async(Message.objects.create)(
                 room_name=self.room_name,
                 sender=sender,
@@ -74,7 +76,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             print(f"Mensaje enviado al usuario {receiver.username} en la sala {self.room_name}")
 
-        # envía el mensaje al grupo
+        # envía el mensaje al grupo (ya sea grupal o privado) en el sistema de WebSockets.
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -84,11 +86,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
-    async def chat_message(self, event):
-        message = event['message']
-        sender_username = event['sender_username']
+    # para recibir el mensaje en el cliente (ya sea chat de grupo o individual )
+    async def chat_message(self, event): # event contiene los datos del mensaje (que se enviaron en el paso anterior)
+        message = event['message'] # extrae el contenido del mensaje del evento recibido.
+        sender_username = event['sender_username'] # extrae el nombre del remitente del evento recibido.
 
-        await self.send(text_data=json.dumps({
+        await self.send(text_data=json.dumps({ # dumps: convierte los datos en un JSON 
             'message': message,
             'sender': sender_username
         }))

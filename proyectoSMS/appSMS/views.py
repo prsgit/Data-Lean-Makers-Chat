@@ -154,11 +154,11 @@ def group_chat(request, group_name):
     group = get_object_or_404(GroupChat, name=group_name)
 
     if request.user not in group.members.all():
-        return redirect('appSMS:group_list')  # Redirige si no es miembro del grupo
+        return redirect('appSMS:group_list')  # Redirige a la lista de grupos si no es miembro del grupo 
 
     users = User.objects.exclude(username='admin')
-    groups = GroupChat.objects.filter(members=request.user)
-    messages = GroupMessage.objects.filter(group=group).order_by('timestamp')
+    groups = GroupChat.objects.filter(members=request.user) # recupera los grupos del usuario
+    messages = GroupMessage.objects.filter(group=group).order_by('timestamp') # recupera los sms asociados al grupo y los ordena por fecha
 
     if request.method == "POST":
         content = request.POST.get("content")

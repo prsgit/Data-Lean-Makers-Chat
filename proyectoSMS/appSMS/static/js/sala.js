@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (userNameElement) {
         const userName = userNameElement.textContent.toLowerCase();
         users[i].style.display = userName.includes(filter) ? "" : "none"; // Mostrar u ocultar según coincidencia
-        hasResults = hasResults || (userName.includes(filter)); // Actualizar hasResults
+        hasResults = hasResults || (userName.includes(filter)); // se actualiza hasResults a True si hay un usuario que coincida
       }
     }
 
