@@ -1,12 +1,18 @@
 import json
+import os
+import base64
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth import get_user_model
 from channels.db import database_sync_to_async
+from django.conf import settings
 from .models import Message, GroupChat, GroupMessage
+
+User = get_user_model()
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_name'] 
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.user = self.scope['user']
         print(f"Intentando conectar: usuario={self.user}")
 
@@ -15,185 +21,109 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
-        # comprueba si es un chat grupal, un chat privado o la existencia del grupo
         try:
-            # obtener un grupo con el nombre de la sala
             self.group = await database_sync_to_async(GroupChat.objects.get)(name=self.room_name)
             self.room_group_name = f"group_chat_{self.room_name}"
             print(f"Conectado al chat grupal: {self.group.name}")
         except GroupChat.DoesNotExist:
-            # Si no existe el grupo, se asume que es un chat privado
             self.room_group_name = f"chat_{self.room_name}"
             self.group = None
             print(f"Conectado al chat privado: {self.room_group_name}")
 
-        #  Añadir el canal del usuario al grupo correspondiente (grupo de chat o chat privado)
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
         await self.accept()
-        print(f"Usuario {self.user.username} conectado a la sala {self.room_group_name}")
+        print(
+            f"Usuario {self.user.username} conectado a la sala {self.room_group_name}")
 
-    # salir del canal
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
-        print(f"Usuario {self.user.username} desconectado de la sala {self.room_group_name}")
+        print(
+            f"Usuario {self.user.username} desconectado de la sala {self.room_group_name}")
 
-    # maneja los mensajes enviados por el cliente al servidor
     async def receive(self, text_data):
-        data = json.loads(text_data) #convierte el texto JSON en un diccionario de python
+        data = json.loads(text_data)
         message = data.get('message', '')
+        file_url = data.get('file_url', None)
         sender = self.user
-        User = get_user_model()
 
-        # comprueba si estamos en un chat grupal o privado
+        # Guardar archivo si se envió
+        if file_url:
+            file_url = await self.save_file(file_url, is_group_chat=bool(self.group))
+
         if self.group:
-            # si estamos en un grupo, se guarda el mensaje en la bbd como un mensaje grupal
             await database_sync_to_async(GroupMessage.objects.create)(
                 group=self.group,
                 sender=sender,
-                content=message
+                content=message,
+                file=file_url
             )
-            print(f"Mensaje enviado al grupo {self.room_name} por {sender.username}")
+            print(
+                f"Mensaje enviado al grupo {self.room_name} por {sender.username}")
         else:
-            # mensaje privado: el mensaje es para un usuario específico (separando IDs de usuarios)
             room_name_parts = self.room_name.split('_')
-            user_ids = [int(uid) for uid in room_name_parts if uid.isdigit()] #filtra el nombre de la sala y coge solo los números (IDs de los usuarios)
-            other_users = [uid for uid in user_ids if uid != sender.id] #excluye al remitente 
-            other_user_id = other_users[0] if other_users else sender.id #obtiene el id del receptor
-            receiver = await database_sync_to_async(User.objects.get)(id=other_user_id) #consulta la bbd y obtiene el destinatario del mensaje
+            user_ids = [int(uid) for uid in room_name_parts if uid.isdigit()]
+            other_users = [uid for uid in user_ids if uid != sender.id]
+            other_user_id = other_users[0] if other_users else sender.id
+            receiver = await database_sync_to_async(User.objects.get)(id=other_user_id)
 
-            # crea el mensaje privado
             await database_sync_to_async(Message.objects.create)(
                 room_name=self.room_name,
                 sender=sender,
                 receiver=receiver,
-                content=message
+                content=message,
+                file=file_url
             )
-            print(f"Mensaje enviado al usuario {receiver.username} en la sala {self.room_name}")
+            print(
+                f"Mensaje enviado al usuario {receiver.username} en la sala {self.room_name}")
 
-        # envía el mensaje al grupo (ya sea grupal o privado) en el sistema de WebSockets.
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
                 'message': message,
-                'sender_username': sender.username
+                'sender_username': sender.username,
+                'file_url': file_url
             }
         )
 
-    # para recibir el mensaje en el cliente (ya sea chat de grupo o individual )
-    async def chat_message(self, event): # event contiene los datos del mensaje (que se enviaron en el paso anterior)
-        message = event['message'] # extrae el contenido del mensaje del evento recibido.
-        sender_username = event['sender_username'] # extrae el nombre del remitente del evento recibido.
+    async def chat_message(self, event):
+        message = event['message']
+        sender_username = event['sender_username']
+        file_url = event.get('file_url', None)
 
-        await self.send(text_data=json.dumps({ # dumps: convierte los datos en un JSON 
+        # Concatenar `MEDIA_URL` si es necesario
+        if file_url and not file_url.startswith(settings.MEDIA_URL):
+            file_url = f"{settings.MEDIA_URL}{file_url}"
+
+        await self.send(text_data=json.dumps({
             'message': message,
-            'sender': sender_username
+            'sender': sender_username,
+            'file_url': file_url
         }))
 
+    async def save_file(self, file_data, is_group_chat):
 
-#ESTE CÓDIGO FALLA , NO GUARDA LOS SMS ENVIADOS POR UN GRUPO.
-# import json
-# from channels.generic.websocket import AsyncWebsocketConsumer
-# from django.contrib.auth import get_user_model
-# from channels.db import database_sync_to_async
-# from .models import Message, GroupChat, GroupMessage
+        # Guarda el archivo recibido y retorna su URL.
 
-# class ChatConsumer(AsyncWebsocketConsumer):
-#     async def connect(self):
-#         self.room_name = self.scope['url_route']['kwargs']['room_name']  
-#         self.user = self.scope['user']
-#         print(f"Intentando conectar: usuario={self.user}")
+        format, imgstr = file_data.split(';base64,')
+        ext = format.split('/')[-1]
+        folder = 'group_files' if is_group_chat else 'private_files'
+        folder_path = os.path.join(settings.MEDIA_ROOT, folder)
+        os.makedirs(folder_path, exist_ok=True)
 
-#         if not self.user.is_authenticated:
-#             print("Usuario no autenticado, cerrando conexión")
-#             await self.close()
-#             return
+        # Crear un nombre único para el archivo
+        filename = f"{self.user.username}_{self.room_name}_{int(self.channel_name[-6:], 36)}.{ext}"
+        file_path = os.path.join(folder_path, filename)
 
-#         # Determinar si es un chat grupal o privado
-#         if "group" in self.room_name:
-#             self.room_group_name = f"group_chat_{self.room_name}"
-#             print(f"Conectando al chat grupal: {self.room_group_name}")
+        # Guardar el archivo
+        with open(file_path, "wb") as f:
+            f.write(base64.b64decode(imgstr))
 
-#             # Intenta obtener el grupo existente
-#             try:
-#                 self.group = await database_sync_to_async(GroupChat.objects.get)(name=self.room_name)
-#                 print(f"Grupo '{self.room_name}' encontrado.")
-#             except GroupChat.DoesNotExist:
-#                 print(f"El grupo '{self.room_name}' no existe. Cerrando conexión.")
-#                 await self.close()
-#                 return
-#         else:
-#             self.room_group_name = f"chat_{self.room_name}"
-#             print(f"Conectando al chat privado: {self.room_group_name}")
-
-#         # Unirse al grupo
-#         await self.channel_layer.group_add(
-#             self.room_group_name,
-#             self.channel_name
-#         )
-#         await self.accept()
-#         print(f"Usuario {self.user.username} conectado a la sala {self.room_group_name}")
-
-#     async def disconnect(self, close_code):
-#         await self.channel_layer.group_discard(
-#             self.room_group_name,
-#             self.channel_name
-#         )
-#         print(f"Usuario {self.user.username} desconectado de la sala {self.room_group_name}")
-
-#     async def receive(self, text_data):
-#         data = json.loads(text_data)
-#         message = data.get('message', '')
-#         sender = self.user
-#         User = get_user_model()
-
-#         # Verificar si es un grupo o un chat privado
-#         if "group" in self.room_group_name:
-#             print(f"Grupo actual: {self.group}")  # Verifica el grupo aquí
-
-#             # Crear el mensaje del grupo
-#             await database_sync_to_async(GroupMessage.objects.create)(
-#                 group=self.group,
-#                 sender=sender,
-#                 content=message
-#             )
-#             print(f"Mensaje enviado a grupo {self.room_name} por {sender.username}")
-#         else:
-#             room_name_parts = self.room_name.split('_')
-#             user_ids = [int(uid) for uid in room_name_parts if uid.isdigit()]
-#             other_users = [uid for uid in user_ids if uid != sender.id]
-#             other_user_id = other_users[0] if other_users else sender.id
-#             receiver = await database_sync_to_async(User.objects.get)(id=other_user_id)
-
-#             await database_sync_to_async(Message.objects.create)(
-#                 room_name=self.room_name,
-#                 sender=sender,
-#                 receiver=receiver,
-#                 content=message
-#             )
-#             print(f"Mensaje enviado al grupo {self.room_name} por el usuario {sender.username}")
-
-#         # Enviar el mensaje al grupo
-#         await self.channel_layer.group_send(
-#             self.room_group_name,
-#             {
-#                 'type': 'chat_message',
-#                 'message': message,
-#                 'sender_username': sender.username
-#             }
-#         )
-
-#     async def chat_message(self, event):
-#         message = event['message']
-#         sender_username = event['sender_username']
-
-#         await self.send(text_data=json.dumps({
-#             'message': message,
-#             'sender': sender_username
-#         }))
+        # Retornar la ruta dentro de `MEDIA_URL`
+        return f"{folder}/{filename}"

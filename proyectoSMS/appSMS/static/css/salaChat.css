@@ -121,7 +121,7 @@ body {
   font-size: 14px;
 }
 
-.usuarios{
+.usuarios {
   flex: 1; /* Asegura que cada elemento ocupe el mismo espacio horizontal */
   text-align: center; /* Centra el contenido de cada div */
 }
@@ -132,15 +132,14 @@ body {
   cursor: pointer;
 }
 
-.icono{
-  color: #74C0FC;
-  transition: color 0.3s;  
+.icono {
+  color: #74c0fc;
+  transition: color 0.3s;
 }
 
 .icono:hover {
-  color: #007BFF; 
+  color: #007bff;
 }
-
 
 #user-list {
   overflow-y: scroll;
@@ -370,6 +369,23 @@ body {
     height: 600px;
     overflow-x: auto;
   }
+}
+
+.chat-list {
+  display: none; /* Ocultar por defecto */
+}
+
+.chat-list.active {
+  display: block; /* Mostrar cuando esté activo */
+}
+
+.toggle-icon {
+  margin-left: 5px;
+  transition: transform 0.3s ease;
+}
+
+.chat-list.active + .toggle-icon {
+  transform: rotate(180deg);
 }
 
 /* @media only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1) {

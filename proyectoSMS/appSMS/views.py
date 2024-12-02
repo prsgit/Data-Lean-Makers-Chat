@@ -4,7 +4,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Message,GroupChat, GroupMessage
+from .models import Message, GroupChat, GroupMessage
+
+User = get_user_model()
 
 
 def home(request):
@@ -68,7 +70,6 @@ def registro(request):
 
 @login_required
 def chat_privado(request, username=None):
-    User = get_user_model()
 
     # Obtener lista de usuarios disponibles + el logeado, menos el admin.
     users = User.objects.exclude(username='admin')
@@ -92,7 +93,25 @@ def chat_privado(request, username=None):
             room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'
 
         # Obtener mensajes previos
-        messages = Message.objects.filter(room_name=room_name).order_by('timestamp')
+        messages = Message.objects.filter(
+            room_name=room_name).order_by('timestamp')
+
+        # Manejo de archivos y contenido
+        if request.method == "POST":
+            # trae el texto del mensaje
+            content = request.POST.get("content", "").strip()
+            file = request.FILES.get("file")  # trae el archivo del formulario
+            # al menos uno de los dos debe estar (o el sms o un archivo)
+            if content or file:
+                Message.objects.create(
+                    room_name=room_name,
+                    sender=request.user,
+                    receiver=other_user,
+                    content=content,
+                    file=file
+                )
+                return redirect('appSMS:chat_privado', username=username)
+
     else:
         other_user = None
         room_name = None
@@ -118,9 +137,10 @@ def logout_view(request):
 def group_list(request):
     # Filtrar los grupos en los que el usuario es miembro
     groups = GroupChat.objects.filter(members=request.user)
-    
+
     # Renderizar la plantilla con la lista de grupos
     return render(request, 'appSMS/group_list.html', {'groups': groups})
+
 
 @login_required
 def create_group(request):
@@ -141,33 +161,44 @@ def create_group(request):
         # Crear el nuevo grupo si no existe
         group = GroupChat.objects.create(name=group_name)
         group.members.add(request.user)  # Añade al creador
-        group.members.add(*User.objects.filter(id__in=members))  # Añade otros miembros
-        
+        # Añade otros miembros
+        group.members.add(*User.objects.filter(id__in=members))
+
         return redirect('appSMS:chat_grupal', group_name=group.name)
 
     # Excluye al admin y al que está creando el grupo
-    users = User.objects.exclude(id=request.user.id).exclude(username='admin') 
+    users = User.objects.exclude(id=request.user.id).exclude(username='admin')
     return render(request, 'appSMS/create_group.html', {'users': users})
+
 
 @login_required
 def group_chat(request, group_name):
     group = get_object_or_404(GroupChat, name=group_name)
 
     if request.user not in group.members.all():
-        return redirect('appSMS:group_list')  # Redirige a la lista de grupos si no es miembro del grupo 
+        # Redirige a la lista de grupos si no es miembro del grupo
+        return redirect('appSMS:group_list')
 
     users = User.objects.exclude(username='admin')
-    groups = GroupChat.objects.filter(members=request.user) # recupera los grupos del usuario
-    messages = GroupMessage.objects.filter(group=group).order_by('timestamp') # recupera los sms asociados al grupo y los ordena por fecha
+    # recupera los grupos del usuario
+    groups = GroupChat.objects.filter(members=request.user)
+    # recupera los sms asociados al grupo y los ordena por fecha
+    messages = GroupMessage.objects.filter(group=group).order_by('timestamp')
 
+   # Manejo de archivos y contenido
     if request.method == "POST":
-        content = request.POST.get("content")
-        if content:  # Verifica si el contenido no está vacío
-            GroupMessage.objects.create(group=group, sender=request.user, content=content)
-            messages.success(request, "Mensaje enviado con éxito.")
-        else:
-            messages.error(request, "No se puede enviar un mensaje vacío.")
-        return redirect('appSMS:group_chat', group_name=group.name)
+        # trae el texto del mensaje
+        content = request.POST.get("content", "").strip()
+        file = request.FILES.get("file")  # trae el archivo del formulario
+        # al menos uno de los dos debe estar (o el sms o un archivo)
+        if content or file:
+            GroupMessage.objects.create(
+                group=group,
+                sender=request.user,
+                content=content,
+                file=file
+            )
+            return redirect('appSMS:chat_grupal', group_name=group.name)
 
     return render(request, 'appSMS/sala.html', {
         'users': users,
