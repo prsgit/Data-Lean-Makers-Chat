@@ -4,7 +4,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 from .models import Message, GroupChat, GroupMessage
+import json
 
 User = get_user_model()
 
@@ -70,11 +72,7 @@ def registro(request):
 
 @login_required
 def chat_privado(request, username=None):
-
-    # Obtener lista de usuarios disponibles + el logeado, menos el admin.
     users = User.objects.exclude(username='admin')
-
-    # Obtener los grupos en los que el usuario está asociado
     groups = GroupChat.objects.filter(members=request.user)
 
     if username:
@@ -82,26 +80,26 @@ def chat_privado(request, username=None):
             other_user = User.objects.get(username=username)
         except User.DoesNotExist:
             return redirect('appSMS:login')
-
-        # Genera un nombre de sala único basado en los IDs de usuario
+        
+        # para se pueda chatear con uno mismo
         if username == request.user.username:
-            # Si el usuario está enviando un mensaje a sí mismo
             room_name = f'private_chat_{request.user.id}_{request.user.id}'
         else:
-            # Si el usuario está enviando un mensaje a otro usuario
-            user_ids = sorted([request.user.id, other_user.id])
-            room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'
+            user_ids = sorted([request.user.id, other_user.id]) # ordena los ids de los usuarios
+            room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'# crea el nombre de la sala de chat
 
-        # Obtener mensajes previos
+        # Filtrar mensajes que no han sido eliminados por el usuario actual
         messages = Message.objects.filter(
-            room_name=room_name).order_by('timestamp')
+            room_name=room_name
+        ).exclude(
+            sender=request.user, sender_deleted=True
+        ).exclude(
+            receiver=request.user, receiver_deleted=True
+        ).order_by('timestamp')
 
-        # Manejo de archivos y contenido
         if request.method == "POST":
-            # trae el texto del mensaje
             content = request.POST.get("content", "").strip()
-            file = request.FILES.get("file")  # trae el archivo del formulario
-            # al menos uno de los dos debe estar (o el sms o un archivo)
+            file = request.FILES.get("file")
             if content or file:
                 Message.objects.create(
                     room_name=room_name,
@@ -122,8 +120,8 @@ def chat_privado(request, username=None):
         'other_user': other_user,
         'messages': messages,
         'room_name': room_name,
-        'groups': groups,  # Añadir grupos aquí
-        'selected_group': None,  # O el grupo seleccionado si lo hay
+        'groups': groups,
+        'selected_group': None,
     })
 
 
@@ -176,21 +174,15 @@ def group_chat(request, group_name):
     group = get_object_or_404(GroupChat, name=group_name)
 
     if request.user not in group.members.all():
-        # Redirige a la lista de grupos si no es miembro del grupo
         return redirect('appSMS:group_list')
 
     users = User.objects.exclude(username='admin')
-    # recupera los grupos del usuario
     groups = GroupChat.objects.filter(members=request.user)
-    # recupera los sms asociados al grupo y los ordena por fecha
-    messages = GroupMessage.objects.filter(group=group).order_by('timestamp')
+    messages = GroupMessage.objects.filter(group=group).exclude(deleted_by=request.user).order_by('timestamp')
 
-   # Manejo de archivos y contenido
     if request.method == "POST":
-        # trae el texto del mensaje
         content = request.POST.get("content", "").strip()
-        file = request.FILES.get("file")  # trae el archivo del formulario
-        # al menos uno de los dos debe estar (o el sms o un archivo)
+        file = request.FILES.get("file")
         if content or file:
             GroupMessage.objects.create(
                 group=group,
@@ -207,3 +199,26 @@ def group_chat(request, group_name):
         'groups': groups,
         'selected_group': group,
     })
+
+
+@login_required
+def delete_chat(request, room_name):
+    if request.method == 'POST':
+        # Marcar los mensajes como eliminados por el usuario actual
+        Message.objects.filter(room_name=room_name, sender=request.user).update(sender_deleted=True)
+        Message.objects.filter(room_name=room_name, receiver=request.user).update(receiver_deleted=True)
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
+def delete_group_chat(request, group_name):
+    if request.method == 'POST':
+        group = get_object_or_404(GroupChat, name=group_name)
+        messages = GroupMessage.objects.filter(group=group)
+        for message in messages:
+            message.deleted_by.add(request.user)
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+

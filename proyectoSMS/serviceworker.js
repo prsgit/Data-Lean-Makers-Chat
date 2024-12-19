@@ -45,3 +45,35 @@ self.addEventListener("fetch", event => {
             })
     )
 });
+
+// Manejo de notificaciones push
+self.addEventListener('push', function(event) {
+    let data = {};
+    if (event.data) {
+        data = event.data.json(); // Asumiendo que los datos se envían en formato JSON
+    }
+
+    const title = data.title || 'Notificación';
+    const options = {
+        body: data.body || 'Tienes una nueva notificación.',
+        icon: data.icon || '/static/img/icon.png', // Ruta del icono de la notificación
+        badge: data.badge || '/static/img/badge.png', // Ruta del badge de la notificación
+        data: {
+            url: data.url || '/chat/' + data.room_name // URL a abrir al hacer clic
+        }
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options).catch(error => {
+            console.error('Error al mostrar la notificación:', error);
+        })
+    );
+});
+
+// Manejo de clic en la notificación
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+    event.waitUntil(
+        clients.openWindow(event.notification.data.url) // URL a abrir al hacer clic
+    );
+});

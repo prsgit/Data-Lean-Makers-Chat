@@ -17,12 +17,12 @@ class GroupChat(models.Model):
 
 
 class GroupMessage(models.Model):
-    group = models.ForeignKey(
-        GroupChat, on_delete=models.CASCADE, related_name="messages")
+    group = models.ForeignKey(GroupChat, on_delete=models.CASCADE, related_name="messages")
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField(blank=True, null=True)
     file = models.FileField(upload_to="group_files/", blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
+    deleted_by = models.ManyToManyField(User, related_name='deleted_group_messages', blank=True)
 
     def __str__(self):
         return f'{self.sender} to {self.group.name}: {self.content[:50]}'
@@ -37,6 +37,17 @@ class Message(models.Model):
     content = models.TextField(blank=True, null=True)
     file = models.FileField(upload_to="private_files/", blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
+    sender_deleted = models.BooleanField(default=False)
+    receiver_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.sender} to {self.receiver}: {self.content}'
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Relación con el usuario
+    endpoint = models.TextField()  # Endpoint para enviar notificaciones
+    keys = models.JSONField()  # Almacena las claves de autenticación y de contenido
+
+    def __str__(self):
+        return f'Suscripción de {self.user.username}'

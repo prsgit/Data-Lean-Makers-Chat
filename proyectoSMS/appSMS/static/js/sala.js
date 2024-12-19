@@ -1,3 +1,20 @@
+// Función para obtener el valor de una cookie por su nombre
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Comprueba si esta cookie comienza con el nombre que buscamos
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 // Configuración del WebSocket para el sala.html
 const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 
@@ -67,8 +84,9 @@ function appendFile(sender, fileUrl, isMyMessage) {
   const minutes = currentTime.getMinutes().toString().padStart(2, "0");
   const timeString = `${hours}:${minutes}`;
 
-  // Detectar si el archivo es una imagen
+  // Detectar si el archivo es una imagen o un video
   const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(fileUrl);
+  const isVideo = /\.(mp4|avi|mov|mkv)$/i.test(fileUrl);
 
   let fileContent;
   if (isImage) {
@@ -78,9 +96,19 @@ function appendFile(sender, fileUrl, isMyMessage) {
         <img src="${fileUrl}" alt="Imagen adjunta" style="max-width: 100px; max-height: 100px; border-radius: 5px;" />
       </a>
     `;
+  } else if (isVideo) {
+    // Mostrar video como vista previa
+    fileContent = `
+       <a href="${fileUrl}" target="_blank">
+        <video controls style="max-width: 200px; max-height: 150px; border-radius: 5px;">
+          <source src="${fileUrl}" type="video/mp4">
+          Tu navegador no soporta la etiqueta de video.
+        </video>
+      </a>
+    `;
   } else {
     // enlace de descarga para otros archivos
-    fileContent = `<a href="${fileUrl}" download target="_blank" class="file-link">Descargar archivo</a>`;
+    fileContent = `<a href="${fileUrl}" download target="_blank" class="file-link">Descargar</a>`;
   }
 
   newMessage.innerHTML = `
@@ -138,7 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const file = fileInput && fileInput.files[0]; // Verifica si hay un archivo seleccionado
 
     if (message === "" && !file) {
-      // Si no hay ni mensaje ni archivo, no hacer nada
+      // Si no hay ni mensaje ni archivo, no hace nada
       return;
     }
 
@@ -223,11 +251,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// Función para alternar la visibilidad de las secciones de grupos y chats individuales
+// Función para los desplegables de grupos y chats individuales
 document.addEventListener("DOMContentLoaded", function () {
   const sections = ["group-list", "user-list"];
 
-  sections.forEach(sectionId => {
+  sections.forEach((sectionId) => {
     const section = document.getElementById(sectionId);
     const estado = localStorage.getItem(sectionId);
     if (estado === "abierto") {
@@ -238,6 +266,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+// Función para abrir y cerrar desplegables
 function toggleSection(sectionId, element) {
   const section = document.getElementById(sectionId);
   if (section) {
@@ -252,4 +281,57 @@ function toggleSection(sectionId, element) {
     localStorage.setItem(sectionId, estado);
   }
 }
+
+// Función para vaciar el chat
+document.addEventListener("DOMContentLoaded", function () {
+  const deleteGroupChatButton = document.getElementById("delete-group-chat");
+
+  if (deleteGroupChatButton) {
+    deleteGroupChatButton.onclick = function () {
+      fetch(`/delete_group_chat/${groupName}/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === "success") {
+            // Limpiar el historial de chat en la interfaz
+            const chatLog = document.getElementById("chat-log");
+            chatLog.innerHTML = "";
+          } else {
+            console.error("Error al vaciar el chat grupal");
+          }
+        });
+    };
+  }
+});
+
+// Función para vaciar el chat individual
+document.addEventListener("DOMContentLoaded", function () {
+  const deleteChatButton = document.getElementById("delete-chat");
+  const roomName = document.getElementById("room-name").value; // Obtener el roomName del input oculto
+
+  if (deleteChatButton) {
+    deleteChatButton.onclick = function () {
+      fetch(`/delete_chat/${roomName}/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === "success") {
+            // Limpiar el historial de chat en la interfaz
+            const chatLog = document.getElementById("chat-log");
+            chatLog.innerHTML = "";
+          } else {
+            console.error("Error al vaciar el chat individual");
+          }
+        });
+    };
+  }
+});
 
