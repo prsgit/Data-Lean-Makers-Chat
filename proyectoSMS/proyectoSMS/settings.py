@@ -142,8 +142,10 @@ LOGOUT_REDIRECT_URL = 'appSMS:login'
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, "serviceworker.js")
 
 # Claves VAPID para notificaciones push
-VAPID_PUBLIC_KEY = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAECMhZakWPpZyKd0VOPJrpM+q503x8eUacdZb2q2kxGuzou24buQ0CSIsqqK717FkWicc3ER37RXWMB6eTFOCy9w=='
+VAPID_PUBLIC_KEY = 'BOD39SOXtP86aeg7CFH_PWHnl4JIsdtqLdftSyfwMOtDEf2FqROAxoqXqffXk6DP8UI2oKeIrHF2vi_jcBfu1zU'
 
-VAPID_PRIVATE_KEY = 'MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgEaglTGWpKyMJO3hWEbAT1rIYXQTcerO6v80Blr/mbM2hRANCAAQIyFlqRY+lnIp3RU48mukz6rnTfHx5Rpx1lvaraTEa7Oi7bhu5DQJIiyqorvXsWRaJxzcRHftFdYwHp5MU4LL3'
+VAPID_PRIVATE_KEY = 'MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgs9DQDWDwQGXTi0H6-DDlwgdVJFfHci-vFFUGJIpMbL6hRANCAATg9_Ujl7T_OmnoOwhR_z1h55eCSLHbai3X7Usn8DDrQxH9hakTgMaKl6n315Ogz_FCNqCniKxxdr4v43AX7tc1'
 
-VAPID_EMAIL = 'pedrorueda.develop@gmail.com'  # Correo electrónico asociado a las notificaciones
+VAPID_CLAIMS = {
+    "sub": "mailto:pedrorueda.develop@gmail.com"
+}

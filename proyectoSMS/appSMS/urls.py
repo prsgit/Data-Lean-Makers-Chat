@@ -13,5 +13,6 @@ urlpatterns = [
     path('grupo_chat/<str:group_name>/', views.group_chat, name='chat_grupal'),
     path('delete_chat/<str:room_name>/', views.delete_chat, name='delete_chat'),
     path('delete_group_chat/<str:group_name>/', views.delete_group_chat, name='delete_group_chat'),
+    path('save-subscription/', views.save_subscription, name='save_subscription'),
     
 ]

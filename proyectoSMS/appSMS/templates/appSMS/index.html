@@ -14,15 +14,15 @@
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
 
-    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}" />
 
-    {% block extra_css %}{% endblock %}
-    
-    {% load pwa %}
-
-    {% progressive_web_app_meta %}
+    {% block extra_css %}{% endblock %} {% load pwa %}
+    {%progressive_web_app_meta %}
   </head>
   <body>
     {% block content %}{% endblock %}
@@ -32,16 +32,80 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
-      if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('{% static "serviceworker.js" %}')
-          .then(function(registration) {
-              console.log('Service Worker registrado con éxito:', registration);
+      if ("serviceWorker" in navigator && "PushManager" in window) {
+        // Registrar el Service Worker
+        navigator.serviceWorker
+          .register("/serviceworker.js")
+          .then(function (registration) {
+            console.log("Service Worker registrado con éxito:", registration);
+
+            // Verificar si ya existe una suscripción activa
+            registration.pushManager
+              .getSubscription()
+              .then(function (subscription) {
+                if (subscription) {
+                  // Reutilizar la suscripción existente
+                  console.log(
+                    "Suscripción existente encontrada:",
+                    subscription
+                  );
+                  return sendSubscriptionToServer(subscription); // Enviar al servidor
+                } else {
+                  // Crear una nueva suscripción si no existe
+                  return subscribeUser(registration);
+                }
+              })
+              .catch(function (error) {
+                console.error("Error al manejar la suscripción:", error);
+              });
           })
-          .catch(function(error) {
-              console.log('Error al registrar el Service Worker:', error);
+          .catch(function (error) {
+            console.error("Error al registrar el Service Worker:", error);
+          });
+      } else {
+        console.warn(
+          "Service Workers o Push Notifications no son soportados en este navegador."
+        );
+      }
+
+      // Función para suscribirse al servicio de notificaciones
+      function subscribeUser(registration) {
+        return registration.pushManager
+          .subscribe({
+            userVisibleOnly: true, // Garantiza que las notificaciones sean visibles
+            applicationServerKey:
+              "BOD39SOXtP86aeg7CFH_PWHnl4JIsdtqLdftSyfwMOtDEf2FqROAxoqXqffXk6DP8UI2oKeIrHF2vi_jcBfu1zU",
+          })
+          .then(function (subscription) {
+            console.log("Nueva suscripción creada:", subscription);
+            return sendSubscriptionToServer(subscription); // Enviar al servidor
+          })
+          .catch(function (error) {
+            console.error("Error al suscribirse:", error);
           });
       }
-  </script>
+
+      // Función para enviar la suscripción al servidor
+      function sendSubscriptionToServer(subscription) {
+        return fetch("/save-subscription/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(subscription),
+        })
+          .then(function (response) {
+            if (response.ok) {
+              console.log("Suscripción enviada al servidor con éxito.");
+            } else {
+              console.error("Error al enviar la suscripción al servidor.");
+            }
+          })
+          .catch(function (error) {
+            console.error("Error al enviar la suscripción:", error);
+          });
+      }
+    </script>
 
     {% block extra_js %}{% endblock %}
   </body>

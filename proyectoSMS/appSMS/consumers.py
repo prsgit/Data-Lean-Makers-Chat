@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from channels.db import database_sync_to_async
 from django.conf import settings
 from .models import Message, GroupChat, GroupMessage
+from appSMS.utils import send_push_notification
 
 User = get_user_model()
 
@@ -66,6 +67,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             print(
                 f"Mensaje enviado al grupo {self.room_name} por {sender.username}")
+            
+            # Notificar a los miembros del grupo
+            members = await database_sync_to_async(self.group.members.exclude)(id=sender.id)  # Excluir al remitente
+            for member in members:
+                payload = {
+                    "title": f"Nuevo mensaje en {self.group.name}",
+                    "body": message if message else "Has recibido un archivo.",
+                    "icon": "/static/img/chat_icon192.png",
+                    "url": f"/chat/{self.group.name}/"  # URL para abrir el chat grupal
+                }
+                await database_sync_to_async(send_push_notification)(member, payload)
+
         else:
             room_name_parts = self.room_name.split('_') #divide el nombre de la sala en partes
             user_ids = [int(uid) for uid in room_name_parts if uid.isdigit()] #extrae los ids de los usuarios
@@ -82,6 +95,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             print(
                 f"Mensaje enviado al usuario {receiver.username} en la sala {self.room_name}")
+            
+            # Enviar notificación al receptor
+            payload = {
+                "title": f"Nuevo mensaje de {sender.username}",
+                "body": message if message else "Has recibido un archivo.",
+                "icon": "/static/img/chat_icon192.png",
+                "url": f"/chat/{sender.username}/"  # URL para abrir el chat privado
+            }
+            await database_sync_to_async(send_push_notification)(receiver, payload)
 
         await self.channel_layer.group_send( #envía un mensaje a todos los miembros del canal (grupal o individual)
             self.room_group_name,

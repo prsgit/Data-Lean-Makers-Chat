@@ -1,21 +1,27 @@
-from pywebpush import Vapid
+from py_vapid import Vapid
 from cryptography.hazmat.primitives import serialization
+from base64 import urlsafe_b64encode
 
-# Generar claves VAPID usando la clase Vapid
+# Generar claves VAPID
 vapid = Vapid()
 vapid.generate_keys()
 
-# Convertir las claves a formato legible (PEM)
-public_key = vapid.public_key.public_bytes(
-    encoding=serialization.Encoding.PEM,
-    format=serialization.PublicFormat.SubjectPublicKeyInfo
-).decode('utf-8')
+# Convertir la clave pública a formato base64url
+public_key = urlsafe_b64encode(
+    vapid.public_key.public_bytes(
+        encoding=serialization.Encoding.X962,  # Formato correcto para la clave pública
+        format=serialization.PublicFormat.UncompressedPoint
+    )
+).decode('utf-8').rstrip("=")
 
-private_key = vapid.private_key.private_bytes(
-    encoding=serialization.Encoding.PEM,
-    format=serialization.PrivateFormat.PKCS8,
-    encryption_algorithm=serialization.NoEncryption()
-).decode('utf-8')
+# Convertir la clave privada a formato base64url en DER
+private_key = urlsafe_b64encode(
+    vapid.private_key.private_bytes(
+        encoding=serialization.Encoding.DER,  # Cambiado a DER para pywebpush
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+).decode('utf-8').rstrip("=")
 
 # Mostrar las claves generadas
 print("VAPID Public Key:")

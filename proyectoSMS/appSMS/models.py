@@ -44,10 +44,12 @@ class Message(models.Model):
         return f'{self.sender} to {self.receiver}: {self.content}'
 
 
-class Subscription(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Relación con el usuario
-    endpoint = models.TextField()  # Endpoint para enviar notificaciones
-    keys = models.JSONField()  # Almacena las claves de autenticación y de contenido
+class PushSubscription(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    endpoint = models.URLField()
+    p256dh = models.TextField()
+    auth = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Suscripción de {self.user.username}'
+        return f"Subscripción para el usuario: {self.user.username}"

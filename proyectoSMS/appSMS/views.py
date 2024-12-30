@@ -3,9 +3,11 @@ from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.http import JsonResponse
-from .models import Message, GroupChat, GroupMessage
+from .models import Message, GroupChat, GroupMessage, PushSubscription
+from appSMS.utils import send_push_notification
 import json
 
 User = get_user_model()
@@ -108,7 +110,18 @@ def chat_privado(request, username=None):
                     content=content,
                     file=file
                 )
-                return redirect('appSMS:chat_privado', username=username)
+                response = redirect('appSMS:chat_privado', username=username)
+
+                payload = {
+                    "title": f"Nuevo mensaje de {request.user.username}",
+                    "body": content if content else "Has recibido un archivo.",
+                    "icon": "/static/img/chat_icon192.png",
+                    "url": f"/chat/{request.user.username}/"
+                }
+                send_push_notification(other_user, payload)
+
+    
+                return response
 
     else:
         other_user = None
@@ -222,3 +235,23 @@ def delete_group_chat(request, group_name):
     return JsonResponse({'status': 'error'}, status=400)
 
 
+@csrf_exempt
+@login_required
+def save_subscription(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        subscription, created = PushSubscription.objects.get_or_create(
+            user=request.user,
+            endpoint=data["endpoint"],
+            defaults={
+                "p256dh": data["keys"]["p256dh"],
+                "auth": data["keys"]["auth"],
+            },
+        )
+        if not created:
+            subscription.p256dh = data["keys"]["p256dh"]
+            subscription.auth = data["keys"]["auth"]
+            subscription.save()
+
+        return JsonResponse({"mensaje": "Suscripción guardada correctamente."})
+    return JsonResponse({"error": "Solicitud inválida"}, status=400)
