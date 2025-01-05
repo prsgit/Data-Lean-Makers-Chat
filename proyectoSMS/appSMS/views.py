@@ -82,13 +82,15 @@ def chat_privado(request, username=None):
             other_user = User.objects.get(username=username)
         except User.DoesNotExist:
             return redirect('appSMS:login')
-        
+
         # para se pueda chatear con uno mismo
         if username == request.user.username:
             room_name = f'private_chat_{request.user.id}_{request.user.id}'
         else:
-            user_ids = sorted([request.user.id, other_user.id]) # ordena los ids de los usuarios
-            room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'# crea el nombre de la sala de chat
+            # ordena los ids de los usuarios
+            user_ids = sorted([request.user.id, other_user.id])
+            # crea el nombre de la sala de chat
+            room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'
 
         # Filtrar mensajes que no han sido eliminados por el usuario actual
         messages = Message.objects.filter(
@@ -115,12 +117,12 @@ def chat_privado(request, username=None):
                 payload = {
                     "title": f"Nuevo mensaje de {request.user.username}",
                     "body": content if content else "Has recibido un archivo.",
-                    "icon": "/static/img/chat_icon192.png",
-                    "url": f"/chat/{request.user.username}/"
+                    "icon": "/static/img/icon192.png",
+                    "url": f"/chat/{request.user.username}/",
+                    "group": False
                 }
                 send_push_notification(other_user, payload)
 
-    
                 return response
 
     else:
@@ -191,7 +193,8 @@ def group_chat(request, group_name):
 
     users = User.objects.exclude(username='admin')
     groups = GroupChat.objects.filter(members=request.user)
-    messages = GroupMessage.objects.filter(group=group).exclude(deleted_by=request.user).order_by('timestamp')
+    messages = GroupMessage.objects.filter(group=group).exclude(
+        deleted_by=request.user).order_by('timestamp')
 
     if request.method == "POST":
         content = request.POST.get("content", "").strip()
@@ -203,7 +206,23 @@ def group_chat(request, group_name):
                 content=content,
                 file=file
             )
-            return redirect('appSMS:chat_grupal', group_name=group.name)
+
+            # Crear el payload para la notificación
+            payload = {
+                "title": f"Nuevo mensaje en {group.name}",
+                "body": content if content else "Has recibido un archivo.",
+                "icon": "/static/img/icon192.png",
+                "url": f"/group/{group_name}/",
+                "group": True
+            }
+
+            # Enviar notificaciones push a todos los miembros del grupo excepto al remitente
+            for member in group.members.exclude(id=request.user.id):
+                send_push_notification(member, payload)
+
+            # Usar response para evitar múltiples llamadas
+            response = redirect('appSMS:chat_grupal', group_name=group.name)
+            return response
 
     return render(request, 'appSMS/sala.html', {
         'users': users,
@@ -218,8 +237,10 @@ def group_chat(request, group_name):
 def delete_chat(request, room_name):
     if request.method == 'POST':
         # Marcar los mensajes como eliminados por el usuario actual
-        Message.objects.filter(room_name=room_name, sender=request.user).update(sender_deleted=True)
-        Message.objects.filter(room_name=room_name, receiver=request.user).update(receiver_deleted=True)
+        Message.objects.filter(room_name=room_name,
+                               sender=request.user).update(sender_deleted=True)
+        Message.objects.filter(room_name=room_name, receiver=request.user).update(
+            receiver_deleted=True)
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
 

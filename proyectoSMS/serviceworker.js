@@ -58,7 +58,10 @@ self.addEventListener("push", function (event) {
     icon: data.icon || "/static/img/icon192.png", // Ruta del icono de la notificación
     badge: data.badge || "/static/img/icon192.png", // Ruta del badge de la notificación
     data: {
-      url: data.url || "/chat/" + data.room_name, // URL a abrir al hacer clic
+      url:
+        data.url ||
+        (data.group ? `/group/${data.room_name}/` : `/chat/${data.room_name}/`),
+      group: data.group || false, // Indica si es un grupo
     },
   };
 
@@ -72,7 +75,33 @@ self.addEventListener("push", function (event) {
 // Manejo de clic en la notificación
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
+
   event.waitUntil(
-    clients.openWindow(event.notification.data.url) // URL a abrir al hacer clic
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientList) => {
+        // Buscar si ya existe una ventana abierta
+        let matchingClient = null;
+
+        for (const client of clientList) {
+          // Verificar si la URL base coincide (dominio raíz del Service Worker)
+          if (client.url.startsWith(self.registration.scope)) {
+            matchingClient = client;
+            break;
+          }
+        }
+
+        if (matchingClient) {
+          // Enfocar la ventana si coincide
+          if ("focus" in matchingClient) {
+            return matchingClient.focus();
+          }
+        } else {
+          // Si no se encuentra una ventana coincidente, abrir una nueva
+          if (clients.openWindow) {
+            return clients.openWindow(event.notification.data.url);
+          }
+        }
+      })
   );
 });

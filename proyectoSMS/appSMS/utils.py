@@ -1,7 +1,7 @@
 import json
 from pywebpush import webpush, WebPushException
 from django.conf import settings
-from appSMS.models import PushSubscription  # Cambia 'appSMS' por el nombre de tu app
+from appSMS.models import PushSubscription
 
 def send_push_notification(user, payload):
     """
