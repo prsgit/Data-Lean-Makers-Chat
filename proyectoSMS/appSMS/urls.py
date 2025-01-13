@@ -14,5 +14,6 @@ urlpatterns = [
     path('delete_chat/<str:room_name>/', views.delete_chat, name='delete_chat'),
     path('delete_group_chat/<str:group_name>/', views.delete_group_chat, name='delete_group_chat'),
     path('save-subscription/', views.save_subscription, name='save_subscription'),
-    
+    path('delete_private_message/<int:message_id>/', views.delete_private_message, name='delete_private_message'),
+    path('delete_group_message/<int:message_id>/', views.delete_group_message, name='delete_group_message'),
 ]

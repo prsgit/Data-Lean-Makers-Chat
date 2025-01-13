@@ -1,7 +1,8 @@
-import json
 from pywebpush import webpush, WebPushException
+import json
 from django.conf import settings
 from appSMS.models import PushSubscription
+
 
 def send_push_notification(user, payload):
     """
@@ -27,11 +28,12 @@ def send_push_notification(user, payload):
                 data=json.dumps(payload),
                 vapid_private_key=settings.VAPID_PRIVATE_KEY,
                 vapid_claims={
-                    "sub": "mailto:pedrorueda.develop@gmail.com" 
+                    "sub": "mailto:pedrorueda.develop@gmail.com"
                 }
             )
             print(f"Notificación enviada a {user.username} con éxito.")
         except WebPushException as ex:
             print(f"Error al enviar la notificación a {user.username}: {ex}")
     else:
-        print(f"No se encontró una suscripción para el usuario {user.username}.")
+        print(
+            f"No se encontró una suscripción para el usuario {user.username}.")

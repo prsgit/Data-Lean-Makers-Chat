@@ -6,7 +6,7 @@
   href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
   rel="stylesheet"
 />
-<input type="hidden" id="room-name" value="{{ room_name }}">
+<input type="hidden" id="room-name" value="{{ room_name }}" />
 <div class="container-fluid chat-container">
   <div class="container">
     <div class="row clearfix">
@@ -105,8 +105,7 @@
                   />
                   <div class="about">
                     <div class="name">
-                      {{ user.username }}
-                      {% if user.username == request.user.username %} (Tú){% endif %}
+                      {{ user.username }} {% if user.username == request.user.username %} (Tú){% endif %}  
                     </div>
                     <div class="status">
                       <i
@@ -139,8 +138,15 @@
                   <div class="chat-about">
                     <h6 class="m-b-0">Grupo: {{ selected_group.name }}</h6>
                   </div>
-                  <div class="delete;"> <!-- Botón para vaciar el chat grupal -->
-                    <button id="delete-group-chat" class="btn btn-danger" style="float: right;">Vaciar Chat</button>
+                  <div class="delete;">
+                    <!-- Botón para vaciar el chat grupal -->
+                    <button
+                      id="delete-group-chat"
+                      class="btn btn-danger"
+                      style="float: right"
+                    >
+                      Vaciar Chat
+                    </button>
                   </div>
                   {% elif other_user %}
                   <!-- Mostrar nombre del usuario en chat individual -->
@@ -151,8 +157,15 @@
                   <div class="chat-about">
                     <h6 class="m-b-0">{{ other_user.username }}</h6>
                   </div>
-                  <div class="delete;"> <!-- Botón para vaciar el chat individual -->
-                    <button id="delete-chat" class="btn btn-danger" style="float: right;">Vaciar Chat</button>
+                  <div class="delete;">
+                    <!-- Botón para vaciar el chat individual -->
+                    <button
+                      id="delete-chat"
+                      class="btn btn-danger"
+                      style="float: right"
+                    >
+                      Vaciar Chat
+                    </button>
                   </div>
                   {% else %}
                   <h6 class="m-b-0">
@@ -187,6 +200,24 @@
                       <a href="{{ message.file.url }}" target="_blank">
                         descargar
                       </a>
+                    </div>
+                    {% endif %} {% if message.sender.username == request.user.username %}
+                    <div class="message-options">
+                      <span
+                        class="options-icon"
+                        onclick="toggleMenu('{{ message.id }}')"
+                        >...</span
+                      >
+                      <div class="options-menu" id="menu-{{ message.id }}">
+                        <button onclick="deleteMessage('{{ message.id }}')">
+                          Eliminar para mí
+                        </button>
+                        <button
+                          onclick="deleteMessageForAll('{{ message.id }}')"
+                        >
+                          Eliminar para todos
+                        </button>
+                      </div>
                     </div>
                     {% endif %}
                   </div>
@@ -239,8 +270,8 @@
   </div>
   {% endblock %} {% block extra_js %}
   <script>
-    const username = "{{ request.user.username }}";//
-    const roomName = "{{ room_name }}";//
+    const username = "{{ request.user.username }}"; //
+    const roomName = "{{ room_name }}"; //
     const groupName =
       "{% if selected_group %}{{ selected_group.name }}{% endif %}";
   </script>

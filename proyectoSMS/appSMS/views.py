@@ -8,6 +8,8 @@ from django.contrib import messages
 from django.http import JsonResponse
 from .models import Message, GroupChat, GroupMessage, PushSubscription
 from appSMS.utils import send_push_notification
+from django.conf import settings
+import os
 import json
 
 User = get_user_model()
@@ -233,6 +235,7 @@ def group_chat(request, group_name):
     })
 
 
+# vaciado del chat individual completo
 @login_required
 def delete_chat(request, room_name):
     if request.method == 'POST':
@@ -245,6 +248,7 @@ def delete_chat(request, room_name):
     return JsonResponse({'status': 'error'}, status=400)
 
 
+# vaciado del chat grupal completo
 @login_required
 def delete_group_chat(request, group_name):
     if request.method == 'POST':
@@ -254,6 +258,52 @@ def delete_group_chat(request, group_name):
             message.deleted_by.add(request.user)
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
+
+
+# elimina sms uno a uno en el chat individual
+@login_required
+def delete_private_message(request, message_id):
+    if request.method == 'POST':
+        try:
+            message = Message.objects.get(id=message_id)
+            if message.sender == request.user:
+                message.sender_deleted = True
+            elif message.receiver == request.user:
+                message.receiver_deleted = True
+            else:
+                return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
+
+            # Eliminar archivo si existe y es para el usuario actual
+            if message.file and os.path.exists(os.path.join(settings.MEDIA_ROOT, message.file.name)):
+                os.remove(os.path.join(settings.MEDIA_ROOT, message.file.name))
+
+            message.save()
+            return JsonResponse({'status': 'success'})
+        except Message.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Mensaje no encontrado'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+
+# elimina sms uno a uno en el chat grupal
+@login_required
+def delete_group_message(request, message_id):
+    if request.method == 'POST':
+        try:
+            message = GroupMessage.objects.get(id=message_id)
+            if request.user in message.group.members.all():
+                message.deleted_by.add(request.user)
+
+                # Eliminar archivo si existe y es para el usuario actual
+                if message.file and os.path.exists(os.path.join(settings.MEDIA_ROOT, message.file.name)):
+                    os.remove(os.path.join(
+                        settings.MEDIA_ROOT, message.file.name))
+
+                return JsonResponse({'status': 'success'})
+            else:
+                return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
+        except GroupMessage.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Mensaje no encontrado'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 
 @csrf_exempt
@@ -276,3 +326,40 @@ def save_subscription(request):
 
         return JsonResponse({"mensaje": "Suscripción guardada correctamente."})
     return JsonResponse({"error": "Solicitud inválida"}, status=400)
+
+
+###############################################################################################################
+
+# elimina un sms para ambos usuarios en el chat individual
+# @login_required
+# def delete_private_message_for_all(request, message_id):
+#     if request.method == 'POST':
+#         try:
+#             message = Message.objects.get(id=message_id)
+#             if message.sender == request.user:
+#                 # Marca el mensaje como eliminado para todos
+#                 message.deleted_for_all = True
+#                 message.save()
+#                 return JsonResponse({'status': 'success'})
+#             else:
+#                 return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
+#         except Message.DoesNotExist:
+#             return JsonResponse({'status': 'error', 'message': 'Mensaje no encontrado'}, status=404)
+#     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+
+# # elimina un sms para todos los usuarios en el chat grupal
+# @login_required
+# def delete_group_message_for_all(request, message_id):
+#     if request.method == 'POST':
+#         try:
+#             message = GroupMessage.objects.get(id=message_id)
+#             if message.sender == request.user:
+#                 message.deleted_for_all = True
+#                 message.save()
+#                 return JsonResponse({'status': 'success'})
+#             else:
+#                 return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
+#         except GroupMessage.DoesNotExist:
+#             return JsonResponse({'status': 'error', 'message': 'Mensaje no encontrado'}, status=404)
+#     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)

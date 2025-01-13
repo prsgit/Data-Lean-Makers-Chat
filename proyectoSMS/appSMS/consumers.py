@@ -60,7 +60,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # Guardar mensaje en la base de datos
         if self.group:
-            await database_sync_to_async(GroupMessage.objects.create)(
+            message_instance = await database_sync_to_async(GroupMessage.objects.create)(
                 group=self.group,
                 sender=sender,
                 content=message,
@@ -93,7 +93,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # recupera el usuario receptor
             receiver = await database_sync_to_async(User.objects.get)(id=other_user_id)
 
-            await database_sync_to_async(Message.objects.create)(
+            message_instance = await database_sync_to_async(Message.objects.create)(
                 room_name=self.room_name,
                 sender=sender,
                 receiver=receiver,
@@ -118,7 +118,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'type': 'chat_message',
                 'message': message,
                 'sender_username': sender.username,
-                'file_url': file_url
+                'file_url': file_url,
+                'message_id': message_instance.id  # Capturar y enviar el ID del mensaje
             }
         )
 
@@ -127,6 +128,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = event['message']
         sender_username = event['sender_username']
         file_url = event.get('file_url', None)
+        # Capturar el ID del mensaje
+        message_id = event.get('message_id', None)
 
         # concatenar `MEDIA_URL` si es necesario
         # comprueba si el archivo tiene el prefijo de la url de media
@@ -138,7 +141,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({  # dumps:convierte un diccionario en una cadena JSON
             'message': message,
             'sender': sender_username,
-            'file_url': file_url
+            'file_url': file_url,
+            'message_id': message_id  # Enviar el ID al cliente
         }))
 
     # guarda el archivo recibido y retorna su URL
@@ -163,3 +167,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # retorna la ruta dentro de `MEDIA_URL`
         return f"{folder}/{filename}"
+
+
+################################################################################################################

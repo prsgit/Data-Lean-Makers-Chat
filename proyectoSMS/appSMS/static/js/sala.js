@@ -1,18 +1,18 @@
 // Función para obtener el valor de una cookie por su nombre
 function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Comprueba si esta cookie comienza con el nombre que buscamos
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      // Comprueba si esta cookie comienza con el nombre que buscamos
+      if (cookie.substring(0, name.length + 1) === name + "=") {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
     }
-    return cookieValue;
+  }
+  return cookieValue;
 }
 
 // Configuración del WebSocket para el sala.html
@@ -52,7 +52,7 @@ chatSocket.onerror = function (e) {
 };
 
 // Función para agregar mensajes al chat
-function appendMessage(sender, message, isMyMessage) {
+function appendMessage(sender, message, isMyMessage, messageId) {
   const chatLog = document.querySelector("#chat-log");
   const newMessage = document.createElement("li");
   const currentTime = new Date();
@@ -60,29 +60,47 @@ function appendMessage(sender, message, isMyMessage) {
   const minutes = currentTime.getMinutes().toString().padStart(2, "0");
   const timeString = `${hours}:${minutes}`;
 
-  newMessage.innerHTML = `
-      <div class="message-data ${isMyMessage ? "text-right" : ""}">
-        <span class="message-data-time">${timeString}</span>
-      </div>
-      <div class="message ${
-        isMyMessage ? "my-message" : "other-message float-right"
-      }">
-        <strong>${isMyMessage ? "Yo" : sender}:</strong> ${message}
-      </div>
-    `;
+  newMessage.id = `message-${messageId}`; // Asignar ID al mensaje para manipularlo
+  newMessage.classList.add("message-item");
 
+  newMessage.innerHTML = `
+  <div class="message-data ${isMyMessage ? "text-right" : ""}">
+      <span class="message-data-time">${timeString}</span>
+  </div>
+  <div class="message ${
+    isMyMessage ? "my-message" : "other-message float-right"
+  }">
+      <strong>${isMyMessage ? "Yo" : sender}:</strong> ${message}
+      ${
+        isMyMessage
+          ? `
+          <div class="message-options">
+              <span class="options-icon" onclick="toggleMenu(${messageId})">...</span>
+              <div class="options-menu" id="menu-${messageId}">
+                  <button onclick="deleteMessage(${messageId})">Eliminar para mí</button>
+                  <button onclick="deleteMessageForAll(${messageId})">Eliminar para todos</button
+              </div>
+          </div>
+      `
+          : ""
+      }
+  </div>
+`;
   chatLog.appendChild(newMessage);
   chatLog.scrollTop = chatLog.scrollHeight;
 }
 
 // Función para agregar archivos adjuntos al chat
-function appendFile(sender, fileUrl, isMyMessage) {
+function appendFile(sender, fileUrl, isMyMessage, messageId) {
   const chatLog = document.querySelector("#chat-log");
   const newMessage = document.createElement("li");
   const currentTime = new Date();
   const hours = currentTime.getHours().toString().padStart(2, "0");
   const minutes = currentTime.getMinutes().toString().padStart(2, "0");
   const timeString = `${hours}:${minutes}`;
+
+  newMessage.id = `message-${messageId}`; // Asignar ID al mensaje para manipularlo
+  newMessage.classList.add("message-item");
 
   // Detectar si el archivo es una imagen o un video
   const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(fileUrl);
@@ -112,16 +130,28 @@ function appendFile(sender, fileUrl, isMyMessage) {
   }
 
   newMessage.innerHTML = `
-      <div class="message-data ${isMyMessage ? "text-right" : ""}">
-        <span class="message-data-time">${timeString}</span>
-      </div>
-      <div class="message ${
-        isMyMessage ? "my-message" : "other-message float-right"
-      }">
-        <strong>${isMyMessage ? "Yo" : sender}:</strong>
-        ${fileContent}
-      </div>
-    `;
+    <div class="message-data ${isMyMessage ? "text-right" : ""}">
+      <span class="message-data-time">${timeString}</span>
+    </div>
+    <div class="message ${
+      isMyMessage ? "my-message" : "other-message float-right"
+    }">
+      <strong>${isMyMessage ? "Yo" : sender}:</strong>
+      ${fileContent}
+      ${
+        isMyMessage
+          ? `
+          <div class="message-options">
+              <span class="options-icon" onclick="toggleMenu(${messageId})">...</span>
+              <div class="options-menu" id="menu-${messageId}">
+                  <button onclick="deleteMessage(${messageId})">Eliminar para mí</button>
+              </div>
+          </div>
+      `
+          : ""
+      }
+    </div>
+  `;
 
   chatLog.appendChild(newMessage);
   chatLog.scrollTop = chatLog.scrollHeight;
@@ -132,12 +162,26 @@ chatSocket.onmessage = function (e) {
   const data = JSON.parse(e.data);
   console.log("Datos recibidos:", data); //datos recibidos
 
+  const messageId = data.message_id; // Captura el ID del mensaje del objeto recibido
+
   if (data.message && data.sender) {
-    appendMessage(data.sender, data.message, data.sender === username);
+    appendMessage(
+      data.sender,
+      data.message,
+      data.sender === username,
+      messageId
+    );
   }
   if (data.file_url && data.sender) {
     console.log("URL del archivo:", data.file_url); //  URL del archivo recibido
-    appendFile(data.sender, data.file_url, data.sender === username);
+    const fileMessageId = data.message_id; // Captura el ID del mensaje relacionado con el archivo
+
+    appendFile(
+      data.sender,
+      data.file_url,
+      data.sender === username,
+      fileMessageId
+    );
   }
 };
 
@@ -282,7 +326,7 @@ function toggleSection(sectionId, element) {
   }
 }
 
-// Función para vaciar el chat
+// Función para vaciar el chat grupal completo
 document.addEventListener("DOMContentLoaded", function () {
   const deleteGroupChatButton = document.getElementById("delete-group-chat");
 
@@ -294,8 +338,8 @@ document.addEventListener("DOMContentLoaded", function () {
           "X-CSRFToken": getCookie("csrftoken"),
         },
       })
-        .then(response => response.json())
-        .then(data => {
+        .then((response) => response.json())
+        .then((data) => {
           if (data.status === "success") {
             // Limpiar el historial de chat en la interfaz
             const chatLog = document.getElementById("chat-log");
@@ -308,7 +352,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// Función para vaciar el chat individual
+// Función para vaciar el chat individual completo
 document.addEventListener("DOMContentLoaded", function () {
   const deleteChatButton = document.getElementById("delete-chat");
   const roomName = document.getElementById("room-name").value; // Obtener el roomName del input oculto
@@ -321,8 +365,8 @@ document.addEventListener("DOMContentLoaded", function () {
           "X-CSRFToken": getCookie("csrftoken"),
         },
       })
-        .then(response => response.json())
-        .then(data => {
+        .then((response) => response.json())
+        .then((data) => {
           if (data.status === "success") {
             // Limpiar el historial de chat en la interfaz
             const chatLog = document.getElementById("chat-log");
@@ -335,3 +379,67 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+// Función para mostrar/ocultar el menú de opciones de un mensaje
+function toggleMenu(messageId) {
+  const menu = document.getElementById(`menu-${messageId}`);
+  if (menu) {
+    menu.classList.toggle("visible");
+  }
+}
+
+// Función "eliminar para mi", tanto para chat individual y grupal
+function deleteMessage(messageId) {
+  const messageElement = document.getElementById(`message-${messageId}`);
+  if (messageElement) {
+    // Determinar la URL según el tipo de chat
+    const deleteUrl = isGroupChat
+      ? `/delete_group_message/${messageId}/` // Ruta para mensajes grupales
+      : `/delete_private_message/${messageId}/`; // Ruta para mensajes privados
+
+    // Llamada al servidor para eliminar el mensaje
+    fetch(deleteUrl, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success") {
+          // Elimina el mensaje del DOM si la operación fue exitosa
+          messageElement.remove();
+        } else {
+          console.error("Error al eliminar el mensaje");
+        }
+      })
+      .catch((error) => console.error("Error en la solicitud:", error));
+  }
+}
+
+// Función "eliminar para todos", tanto para chat individual y grupal
+function deleteMessageForAll(messageId) {
+  const messageElement = document.getElementById(`message-${messageId}`);
+  if (messageElement) {
+    // Llamada al servidor para eliminar el mensaje
+    const endpoint = isGroupChat
+      ? `/delete_group_message_for_all/${messageId}/`
+      : `/delete_private_message_for_all/${messageId}/`;
+
+    fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success") {
+          // Elimina el mensaje del DOM si la operación fue exitosa
+          messageElement.remove();
+        } else {
+          console.error("Error al eliminar el mensaje para todos");
+        }
+      })
+      .catch((error) => console.error("Error en la solicitud:", error));
+  }
+}
