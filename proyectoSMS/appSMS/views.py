@@ -1,3 +1,5 @@
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from django.contrib.auth import authenticate, login, get_user_model, logout
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
@@ -328,38 +330,66 @@ def save_subscription(request):
     return JsonResponse({"error": "Solicitud inválida"}, status=400)
 
 
-###############################################################################################################
-
 # elimina un sms para ambos usuarios en el chat individual
-# @login_required
-# def delete_private_message_for_all(request, message_id):
-#     if request.method == 'POST':
-#         try:
-#             message = Message.objects.get(id=message_id)
-#             if message.sender == request.user:
-#                 # Marca el mensaje como eliminado para todos
-#                 message.deleted_for_all = True
-#                 message.save()
-#                 return JsonResponse({'status': 'success'})
-#             else:
-#                 return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
-#         except Message.DoesNotExist:
-#             return JsonResponse({'status': 'error', 'message': 'Mensaje no encontrado'}, status=404)
-#     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+@login_required
+def delete_private_message_for_all(request, message_id):
+    if request.method == 'POST':
+        try:
+            message = Message.objects.get(id=message_id)
+
+            if message.sender != request.user:
+                return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
+
+            # Marcar el mensaje como eliminado para todos
+            message.deleted_for_all = True
+            message.save()
+
+            # Emitir evento al WebSocket
+            channel_layer = get_channel_layer()
+            room_name = message.room_name  # Nombre de la sala de chat
+            async_to_sync(channel_layer.group_send)(
+                f'chat_{room_name}',
+                {
+                    'type': 'delete_message_for_all',
+                    'message_id': message_id,
+                    'file_url': message.file.url if message.file else None,
+                }
+            )
+
+            return JsonResponse({'status': 'success'})
+        except Message.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Mensaje no encontrado'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 
-# # elimina un sms para todos los usuarios en el chat grupal
-# @login_required
-# def delete_group_message_for_all(request, message_id):
-#     if request.method == 'POST':
-#         try:
-#             message = GroupMessage.objects.get(id=message_id)
-#             if message.sender == request.user:
-#                 message.deleted_for_all = True
-#                 message.save()
-#                 return JsonResponse({'status': 'success'})
-#             else:
-#                 return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
-#         except GroupMessage.DoesNotExist:
-#             return JsonResponse({'status': 'error', 'message': 'Mensaje no encontrado'}, status=404)
-#     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+# elimina un sms para todos los usuarios en el chat grupal
+@login_required
+def delete_group_message_for_all(request, message_id):
+    if request.method == 'POST':
+        try:
+            message = GroupMessage.objects.get(id=message_id)
+
+            if message.sender != request.user or request.user not in message.group.members.all():
+                return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
+
+            # Marcar el mensaje como eliminado para todos
+            message.deleted_for_all = True
+            message.save()
+
+            # Emitir evento al WebSocket
+            channel_layer = get_channel_layer()
+            # Nombre del grupo de WebSocket
+            group_name = f"group_chat_{message.group.name}"
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    'type': 'delete_message_for_all',
+                    'message_id': message_id,
+                    'file_url': message.file.url if message.file else None,
+                }
+            )
+
+            return JsonResponse({'status': 'success'})
+        except GroupMessage.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Mensaje no encontrado'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)

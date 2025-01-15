@@ -16,4 +16,6 @@ urlpatterns = [
     path('save-subscription/', views.save_subscription, name='save_subscription'),
     path('delete_private_message/<int:message_id>/', views.delete_private_message, name='delete_private_message'),
     path('delete_group_message/<int:message_id>/', views.delete_group_message, name='delete_group_message'),
+    path('delete_private_message_for_all/<int:message_id>/', views.delete_private_message_for_all, name='delete_private_message_for_all'),
+    path('delete_group_message_for_all/<int:message_id>/', views.delete_group_message_for_all, name='delete_group_message_for_all'),
 ]

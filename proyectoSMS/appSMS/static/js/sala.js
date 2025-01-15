@@ -78,7 +78,7 @@ function appendMessage(sender, message, isMyMessage, messageId) {
               <span class="options-icon" onclick="toggleMenu(${messageId})">...</span>
               <div class="options-menu" id="menu-${messageId}">
                   <button onclick="deleteMessage(${messageId})">Eliminar para mí</button>
-                  <button onclick="deleteMessageForAll(${messageId})">Eliminar para todos</button
+                  <button onclick="deleteMessageForAll(${messageId})">Eliminar para todos</button>
               </div>
           </div>
       `
@@ -145,6 +145,7 @@ function appendFile(sender, fileUrl, isMyMessage, messageId) {
               <span class="options-icon" onclick="toggleMenu(${messageId})">...</span>
               <div class="options-menu" id="menu-${messageId}">
                   <button onclick="deleteMessage(${messageId})">Eliminar para mí</button>
+                  <button onclick="deleteMessageForAll(${messageId})">Eliminar para todos</button>
               </div>
           </div>
       `
@@ -163,6 +164,19 @@ chatSocket.onmessage = function (e) {
   console.log("Datos recibidos:", data); //datos recibidos
 
   const messageId = data.message_id; // Captura el ID del mensaje del objeto recibido
+
+  if (data.type === "delete_for_all" && messageId) {
+    // Manejar la eliminación para todos
+    const messageElement = document.getElementById(`message-${messageId}`);
+    if (messageElement) {
+      messageElement.remove();
+    }
+    // Si hay un archivo relacionado, eliminar su vista
+    if (data.file_url) {
+      console.log(`Archivo eliminado de la vista: ${data.file_url}`);
+    }
+    return;
+  }
 
   if (data.message && data.sender) {
     appendMessage(
@@ -416,16 +430,17 @@ function deleteMessage(messageId) {
   }
 }
 
-// Función "eliminar para todos", tanto para chat individual y grupal
+// Función "eliminar para todos"
 function deleteMessageForAll(messageId) {
   const messageElement = document.getElementById(`message-${messageId}`);
   if (messageElement) {
-    // Llamada al servidor para eliminar el mensaje
-    const endpoint = isGroupChat
-      ? `/delete_group_message_for_all/${messageId}/`
-      : `/delete_private_message_for_all/${messageId}/`;
+    // Determinar la URL según el tipo de chat
+    const deleteUrl = isGroupChat
+      ? `/delete_group_message_for_all/${messageId}/` // Ruta para eliminar mensajes grupales
+      : `/delete_private_message_for_all/${messageId}/`; // Ruta para eliminar mensajes privados
 
-    fetch(endpoint, {
+    // Llamada al servidor para eliminar el mensaje para todos
+    fetch(deleteUrl, {
       method: "POST",
       headers: {
         "X-CSRFToken": getCookie("csrftoken"),
@@ -436,6 +451,9 @@ function deleteMessageForAll(messageId) {
         if (data.status === "success") {
           // Elimina el mensaje del DOM si la operación fue exitosa
           messageElement.remove();
+          if (data.file_url) {
+            console.log(`Archivo eliminado de la vista: ${data.file_url}`);
+          }
         } else {
           console.error("Error al eliminar el mensaje para todos");
         }
