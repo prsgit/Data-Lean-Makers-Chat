@@ -178,7 +178,7 @@ chatSocket.onmessage = function (e) {
     return;
   }
 
-  // Manejar la eliminación solo para el emisor
+  // Manejar la eliminación solo para el emisor no afecta al receptor
   if (data.type === "delete_for_me" && messageId) {
     const messageElement = document.getElementById(`message-${messageId}`);
     if (messageElement) {

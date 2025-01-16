@@ -286,8 +286,13 @@ def delete_private_message(request, message_id):
 def delete_group_message(request, message_id):
     if request.method == 'POST':
         try:
+            # Buscar el mensaje por su ID
             message = GroupMessage.objects.get(id=message_id)
+
+            # Comprobar si el usuario es miembro del grupo
             if request.user in message.group.members.all():
+
+                # Marcar el mensaje como eliminado para el usuario actual
                 message.deleted_by.add(request.user)
                 message.save()
 

@@ -55,7 +55,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if event_type == 'delete_for_me':
             message_id = data.get('message_id')
             await self.channel_layer.group_send(
-                self.room_group_name,
+                self.room_group_name,  # Enviar el evento al grupo correspondiente
                 {
                     'type': 'delete_message_for_me',
                     'message_id': message_id,
@@ -167,11 +167,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def delete_message_for_me(self, event):
-        message_id = event['message_id']
-        user = event['user']
+        message_id = event['message_id']  # ID del mensaje que se elimina
+        user = event['user']  # Usuario que solicita la eliminación
 
-        # Enviar el evento al cliente actual
-        if user == self.user.username:  # Solo afecta al usuario que lo eliminó
+        # Enviar el evento solo al usuario que lo eliminó
+        if user == self.user.username:
             await self.send(text_data=json.dumps({
                 'type': 'delete_for_me',
                 'message_id': message_id,
