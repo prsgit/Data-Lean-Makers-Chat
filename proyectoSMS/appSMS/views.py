@@ -274,11 +274,6 @@ def delete_private_message(request, message_id):
                 message.receiver_deleted = True
             else:
                 return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
-
-            # Eliminar archivo si existe y es para el usuario actual
-            if message.file and os.path.exists(os.path.join(settings.MEDIA_ROOT, message.file.name)):
-                os.remove(os.path.join(settings.MEDIA_ROOT, message.file.name))
-
             message.save()
             return JsonResponse({'status': 'success'})
         except Message.DoesNotExist:
@@ -294,11 +289,7 @@ def delete_group_message(request, message_id):
             message = GroupMessage.objects.get(id=message_id)
             if request.user in message.group.members.all():
                 message.deleted_by.add(request.user)
-
-                # Eliminar archivo si existe y es para el usuario actual
-                if message.file and os.path.exists(os.path.join(settings.MEDIA_ROOT, message.file.name)):
-                    os.remove(os.path.join(
-                        settings.MEDIA_ROOT, message.file.name))
+                message.save()
 
                 return JsonResponse({'status': 'success'})
             else:

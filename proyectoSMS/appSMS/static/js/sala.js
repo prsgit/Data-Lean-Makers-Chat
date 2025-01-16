@@ -178,6 +178,15 @@ chatSocket.onmessage = function (e) {
     return;
   }
 
+  // Manejar la eliminación solo para el emisor
+  if (data.type === "delete_for_me" && messageId) {
+    const messageElement = document.getElementById(`message-${messageId}`);
+    if (messageElement) {
+      messageElement.remove();
+    }
+    return;
+  }
+
   if (data.message && data.sender) {
     appendMessage(
       data.sender,
