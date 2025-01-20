@@ -57,3 +57,12 @@ class PushSubscription(models.Model):
 
     def __str__(self):
         return f"Subscripción para el usuario: {self.user.username}"
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    avatar = models.ImageField(
+        upload_to='avatars/', default='avatars/default.png')
+
+    def __str__(self):
+        return self.user.username

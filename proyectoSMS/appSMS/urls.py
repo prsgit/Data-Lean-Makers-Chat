@@ -18,4 +18,5 @@ urlpatterns = [
     path('delete_group_message/<int:message_id>/', views.delete_group_message, name='delete_group_message'),
     path('delete_private_message_for_all/<int:message_id>/', views.delete_private_message_for_all, name='delete_private_message_for_all'),
     path('delete_group_message_for_all/<int:message_id>/', views.delete_group_message_for_all, name='delete_group_message_for_all'),
+    path('update_profile/', views.update_profile, name='update_profile'),
 ]

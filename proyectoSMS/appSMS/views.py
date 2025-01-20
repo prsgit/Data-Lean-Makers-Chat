@@ -8,8 +8,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.http import JsonResponse
-from .models import Message, GroupChat, GroupMessage, PushSubscription
+from .models import Message, GroupChat, GroupMessage, PushSubscription, UserProfile
 from appSMS.utils import send_push_notification
+from PIL import Image
 from django.conf import settings
 import os
 import json
@@ -74,6 +75,34 @@ def registro(request):
             return redirect('appSMS:registro')
 
     return render(request, 'appSMS/registro.html')
+
+
+# cambiar imagen de perfil
+@login_required
+def update_profile(request):
+    user_profile = UserProfile.objects.get(user=request.user)
+
+    if request.method == 'POST':
+        avatar = request.FILES.get('avatar')
+        if avatar:
+            try:
+                # Verificar si el archivo subido es una imagen válida
+                img = Image.open(avatar)
+                img.verify()
+                # Guardar el nuevo avatar
+                user_profile.avatar = avatar
+                user_profile.save()
+                # Redirigir al chat privado después de una actualización exitosa
+                return redirect('appSMS:chat_privado', username=request.user.username)
+            except (IOError, SyntaxError):
+                # Mensaje de error si el archivo no es válido
+                messages.error(request, 'Por favor, sube un archivo de imagen válido.')
+        else:
+            messages.error(request, 'Por favor, selecciona un archivo para subir.')
+
+    # Renderizar la página de actualización para solicitudes GET o en caso de error
+    return render(request, 'appSMS/update_profile.html', {'user_profile': user_profile})
+
 
 
 @login_required
