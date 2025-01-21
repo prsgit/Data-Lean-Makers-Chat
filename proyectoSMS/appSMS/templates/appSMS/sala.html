@@ -72,8 +72,8 @@
                   class="clearfix"
                 >
                   <img
-                    src="https://bootdey.com/img/Content/avatar/avatar3.png"
-                    alt="group-avatar"
+                    src="{{ group.avatar.url }}"
+                    alt="group-avatar" onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';"
                   />
                   <div class="about">
                     <div class="name">{{ group.name }}</div>
@@ -137,11 +137,11 @@
                   {% if selected_group %}
                   <!-- Mostrar nombre del grupo -->
                   <img
-                    src="https://bootdey.com/img/Content/avatar/avatar3.png"
-                    alt="group-avatar"
+                    src="{{ selected_group.avatar.url }}"
+                    alt="group-avatar" onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';"
                   />
                   <div class="chat-about">
-                    <h6 class="m-b-0">Grupo: {{ selected_group.name }}</h6>
+                    <h6 class="m-b-0">{{ selected_group.name }}</h6>
                   </div>
                   <div class="delete">
                     <!-- Botón para vaciar el chat grupal -->

@@ -10,6 +10,7 @@ class GroupChat(models.Model):
     name = models.CharField(max_length=255, unique=True)  # Nombre del grupo
     members = models.ManyToManyField(
         User, related_name="group_chats")  # Miembros del grupo
+    avatar = models.ImageField(upload_to='group_avatars/', default='group_avatars/default_group.png')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -470,17 +470,3 @@ function deleteMessageForAll(messageId) {
       .catch((error) => console.error("Error en la solicitud:", error));
   }
 }
-
-// Mostrar vista previa del avatar seleccionado
-function previewAvatar(input) {
-  const preview = document.getElementById("preview-avatar");
-  const file = input.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      preview.src = e.target.result;
-      preview.classList.remove("d-none"); // Mostrar la vista previa
-    };
-    reader.readAsDataURL(file);
-  }
-}

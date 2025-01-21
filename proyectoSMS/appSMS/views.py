@@ -96,13 +96,14 @@ def update_profile(request):
                 return redirect('appSMS:chat_privado', username=request.user.username)
             except (IOError, SyntaxError):
                 # Mensaje de error si el archivo no es válido
-                messages.error(request, 'Por favor, sube un archivo de imagen válido.')
+                messages.error(
+                    request, 'Por favor, sube un archivo de imagen válido.')
         else:
-            messages.error(request, 'Por favor, selecciona un archivo para subir.')
+            messages.error(
+                request, 'Por favor, selecciona un archivo para subir.')
 
     # Renderizar la página de actualización para solicitudes GET o en caso de error
     return render(request, 'appSMS/update_profile.html', {'user_profile': user_profile})
-
 
 
 @login_required
@@ -191,30 +192,49 @@ def group_list(request):
 @login_required
 def create_group(request):
     if request.method == "POST":
-        group_name = request.POST.get("group_name")
-        members = request.POST.getlist("members")
 
-        # Verificar si se ha seleccionado al menos un miembro
+        group_name = request.POST.get("group_name") # Capturar el nombre del grupo
+        members = request.POST.getlist("members") # Capturar los IDs de los miembros seleccionados
+        avatar = request.FILES.get("avatar") # Capturar el archivo del avatar subido
+
+        # Validar si se seleccionaron miembros
         if not members:
             messages.error(request, "Debes elegir al menos un miembro")
             return redirect('appSMS:crear_grupo')
 
-        # Verificar si el grupo ya existe
+        # Validar si el grupo ya existe
         if GroupChat.objects.filter(name=group_name).exists():
             messages.error(request, "El grupo ya existe.")
             return redirect('appSMS:crear_grupo')
+        
+         # Validar si el archivo subido es una imagen válida
+        if avatar:
+            try:
+                img = Image.open(avatar)
+                img.verify()  # Verificar si el archivo es una imagen válida
+            except (IOError, SyntaxError):
+                messages.error(request, 'Por favor, sube un archivo de imagen válido.')
+                return redirect('appSMS:crear_grupo')
 
-        # Crear el nuevo grupo si no existe
-        group = GroupChat.objects.create(name=group_name)
-        group.members.add(request.user)  # Añade al creador
-        # Añade otros miembros
-        group.members.add(*User.objects.filter(id__in=members))
+        # Crear el grupo
+        group = GroupChat(
+            name=group_name,
+            avatar=avatar if avatar else "group_avatars/default_group.png"  # imagen por defecto
+        )
+        group.save()  # Guardar el grupo en la base de datos
 
+        
+        group.members.add(request.user) # Añadir al usuario creador como miembro
+        group.members.add(*User.objects.filter(id__in=members)) # Añadir los demás miembros seleccionados
+
+        # Redirigir al chat grupal
         return redirect('appSMS:chat_grupal', group_name=group.name)
 
-    # Excluye al admin y al que está creando el grupo
-    users = User.objects.exclude(id=request.user.id).exclude(username='admin')
-    return render(request, 'appSMS/create_group.html', {'users': users})
+    else:  # Si no es POST, asumimos que es GET
+        # Usuarios disponibles para agregar al grupo (excluyendo al creador y al admin)
+        users = User.objects.exclude(
+            id=request.user.id).exclude(username='admin')
+        return render(request, 'appSMS/create_group.html', {'users': users})
 
 
 @login_required

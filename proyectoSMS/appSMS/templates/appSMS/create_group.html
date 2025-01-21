@@ -1,46 +1,90 @@
-{% extends 'appSMS/index.html' %}
-{% load static %}
+{% extends 'appSMS/index.html' %} {% load static %}
 <title>{% block title %}Crear Grupo{% endblock %}</title>
+
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/create_group.css' %}" />
 <div class="container mt-5 create-group-container">
-    <h2 class="mb-4">Crear Grupo de Chat</h2>
+  <h2 class="mb-4">Crear Grupo de Chat</h2>
 
-    <!-- Contenedor de alerta -->
-    {% if messages %}
-        <div class="mb-3">
-            {% for message in messages %}
-                <div class="alert alert-danger" role="alert">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+  <!-- Contenedor de alerta -->
+  {% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-danger" role="alert">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="group_name" class="form-label">Nombre del Grupo:</label>
-            <input type="text" name="group_name" id="group_name" class="form-control" required>
-        </div>
+  <form method="post" enctype="multipart/form-data">
+    <!-- Soporte para subida de archivos -->
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="group_name" class="form-label">Nombre del Grupo:</label>
+      <input
+        type="text"
+        name="group_name"
+        id="group_name"
+        class="form-control"
+        required
+      />
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Selecciona Miembros:</label><br>
-            <div class="member-list"> <!-- Contenedor para los miembros -->
-                {% for user in users %}
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="members" value="{{ user.id }}" id="member_{{ user.id }}">
-                        <label class="form-check-label" for="member_{{ user.id }}">
-                            {{ user.username }}
-                        </label>
-                    </div>
-                {% endfor %}
-            </div>
+    <div class="mb-3 text-center">
+      <!-- Imagen del avatar -->
+      <label for="avatar" style="cursor: pointer">
+        <img
+          id="current-avatar"
+          src="{% static 'img/group_default.png' %}"
+          alt="Avatar del grupo"
+          class="img-thumbnail rounded-circle"
+          width="80"
+        />
+      </label>
+      <!-- Input oculto para subir el archivo -->
+      <input
+        type="file"
+        name="avatar"
+        id="avatar"
+        class="d-none"
+        accept="image/*"
+        onchange="previewAvatar(this)"
+      />
+      <p class="mt-2">Haz click para elegir la imagen del grupo</p>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Selecciona Miembros:</label><br />
+      <div class="member-list">
+        <!-- Contenedor para los miembros -->
+        {% for user in users %}
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            name="members"
+            value="{{ user.id }}"
+            id="member_{{ user.id }}"
+          />
+          <label class="form-check-label" for="member_{{ user.id }}">
+            {{ user.username }}
+          </label>
         </div>
-        <div class="d-flex justify-content-between">
-            <button type="submit" class="btn btn-success">Crear</button>
-            <button type="button" class="btn btn-danger" onclick="window.history.back();">Atrás</button>
-        </div>
-    </form>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between">
+      <button type="submit" class="btn btn-success">Crear</button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        onclick="window.history.back();"
+      >
+        Atrás
+      </button>
+    </div>
+  </form>
 </div>
+
+<script src="{% static 'js/functions.js' %}"></script>
 {% endblock %}
