@@ -21,7 +21,7 @@
               <span>
                   Usuario: 
                   <strong>
-                      <a href="{% url 'appSMS:update_profile' %}" style="color: inherit; text-decoration: none;">
+                      <a href="{% url 'appSMS:update_profile' %}" title="Perfil usuario" style="color: inherit; text-decoration: none;">
                           {{ request.user.username }}
                       </a>
                   </strong>
@@ -78,7 +78,7 @@
                   <div class="about">
                     <div class="name">{{ group.name }}</div>
                     <div class="status">
-                      <i class="fa fa-circle online"></i> Grupo activo
+                      <!-- <i class="fa fa-circle online"></i> Grupo activo -->
                     </div>
                   </div>
                 </a>
@@ -112,13 +112,13 @@
                     <div class="name">
                       {{ user.username }} {% if user.username == request.user.username %} (Tú){% endif %}  
                     </div>
-                    <div class="status">
+                    <!-- <div class="status">
                       <i
                         class="fa fa-circle {% if user == other_user %}online{% else %}offline{% endif %}"
                       ></i>
                       {% if user == other_user %} en línea {% else %}
                       desconectado {% endif %}
-                    </div>
+                    </div> -->
                   </div>
                 </a>
               </li>
@@ -136,10 +136,16 @@
                 <div class="col-lg-6">
                   {% if selected_group %}
                   <!-- Mostrar nombre del grupo -->
-                  <img
-                    src="{{ selected_group.avatar.url }}"
-                    alt="group-avatar" onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';"
-                  />
+                  <a href="{% url 'appSMS:update_group_avatar' group_id=selected_group.id %}">
+                    <img
+                      src="{{ selected_group.avatar.url }}"
+                      alt="group-avatar"
+                      title="Cambiar imagen"
+                      style="cursor: pointer"
+                      onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';"
+                    />
+                  </a>
+                  
                   <div class="chat-about">
                     <h6 class="m-b-0">{{ selected_group.name }}</h6>
                   </div>

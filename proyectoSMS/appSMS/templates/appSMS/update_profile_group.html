@@ -1,0 +1,73 @@
+{% extends 'appSMS/index.html' %} {% load static %}
+
+<title>{% block title %}Actualizar perfil de grupo{% endblock %}</title>
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}" />
+
+<div class="container-fluid">
+  <div class="overlay"></div>
+  <div class="d-flex align-items-center justify-content-center h-100">
+    <div class="login-container text-center">
+      <h2>Perfil de Grupo</h2>
+
+      <!-- Mensajes de error -->
+      {% if messages %} {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %} {% endif %}
+
+      <!-- Formulario para subir avatar -->
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Imagen actual que actúa como botón -->
+        <div class="mb-3 text-center">
+          <label for="avatar" style="cursor: pointer">
+            <img
+              src="{{ group.avatar.url }}"
+              alt="Avatar del grupo"
+              id="current-avatar"
+              class="img-thumbnail rounded-circle"
+              width="80"
+            />
+          </label>
+          <input
+            type="file"
+            name="avatar"
+            class="d-none"
+            id="avatar"
+            accept="image/*"
+            onchange="previewAvatar(this)"
+          />
+          <p class="mt-2">Haz click en la imagen</p>
+        </div>
+
+        <!-- Vista previa de la nueva imagen -->
+        <div class="mb-3 text-center">
+          <img
+            id="preview-avatar"
+            src="#"
+            alt="Vista previa"
+            class="img-thumbnail rounded-circle d-none"
+            width="80"
+          />
+        </div>
+
+        <button type="submit" class="btn btn-success">Actualizar</button>
+      </form>
+
+      <!-- Enlace para volver -->
+      <p class="mt-3">
+        <span>¿No deseas cambiar la imagen del grupo?</span>
+        <a
+          href="{% url 'appSMS:chat_grupal' group_name=group.name %}"
+          style="color: #2e7d32"
+          >Volver</a
+        >
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/functions.js' %}"></script>
+{% endblock %}
