@@ -1,290 +1,307 @@
 {% extends 'appSMS/index.html' %} {% load static %}
 <title>{% block title %}Chat{% endblock %}</title>
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/salaChat.css' %}" />
+<!-- <link rel="stylesheet" href="{% static 'css/salaChat.css' %}" /> -->
 <link
   href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
   rel="stylesheet"
 />
-<input type="hidden" id="room-name" value="{{ room_name }}" />
-<div class="container-fluid chat-container">
-  <div class="container">
-    <div class="row clearfix">
-      <div class="col-lg-12 p-0">
-        <div class="card chat-app">
-          <!-- Columna izquierda: Usuarios y Grupos -->
-          <div id="plist" class="people-list">
-            <div
-              class="d-flex justify-content-between align-items-center usuarios"
-            >
-            <div id="user-conectado">
-              <span>
-                  Usuario: 
-                  <strong>
-                      <a href="{% url 'appSMS:update_profile' %}" title="Perfil usuario" style="color: inherit; text-decoration: none;">
-                          {{ request.user.username }}
-                      </a>
-                  </strong>
-              </span>
-            </div>
-              <div class="icon-add-grupo" title="Crear Grupo">
-                <a href="{% url 'appSMS:crear_grupo' %}">
-                  <i class="fa-solid fa-user-group fa-xl icon icono"></i>
-                </a>
-              </div>
+<script src="https://cdn.tailwindcss.com"></script>
 
-              <div class="text-right">
-                <a
-                  href="{% url 'appSMS:logout' %}"
-                  class="btn btn-danger custom-logout-button mb-2"
-                  >Cerrar Sesión</a
-                >
-              </div>
-            </div>
-            <div class="input-group mb-3">
-              <div class="input-group-prepend">
-                <span class="input-group-text">
-                  <i class="fa fa-search"></i>
-                </span>
-              </div>
-              <input
-                type="text"
-                id="search-input"
-                class="form-control"
-                placeholder="Buscar usuario o grupo..."
-              />
-            </div>
+<!-- component -->
+<div>
+  <div class="w-full h-32" style="background-color: #3B82F6"></div>
 
-            <!-- Lista de chats grupales -->
-            <h5
-              class="chat-section-title"
-              onclick="toggleSection('group-list', this)"
-            >
-              Grupos <i class="fa fa-chevron-down toggle-icon"></i>
-            </h5>
-            <ul class="list-unstyled chat-list mt-2 mb-0" id="group-list">
-              {% for group in groups %}
-              <li
-                class="clearfix {% if group == selected_group %}active{% endif %}"
-              >
-                <a
-                  href="{% url 'appSMS:chat_grupal' group_name=group.name %}"
-                  class="clearfix"
-                >
-                  <img
-                    src="{{ group.avatar.url }}"
-                    alt="group-avatar" onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';"
-                  />
-                  <div class="about">
-                    <div class="name">{{ group.name }}</div>
-                    <div class="status">
-                      <!-- <i class="fa fa-circle online"></i> Grupo activo -->
+  <div class="container mx-auto" style="margin-top: -128px;">
+      <div class="py-6 h-screen">
+          <div class="flex border border-grey rounded shadow-lg h-full">
+
+              <!-- Left -->
+              <div class="w-1/3 border flex flex-col">
+
+                  <!-- Header -->
+                  <div class="py-2 px-3 bg-grey-lighter flex flex-row justify-between items-center">
+                    <span>
+                      Usuario: 
+                      <strong>
+                          <a href="{% url 'appSMS:update_profile' %}" title="Perfil usuario" style="color: inherit; text-decoration: none;">
+                              {{ request.user.username }}
+                          </a>
+                      </strong>
+                  </span>
+
+                      <div class="flex">
+                          <!-- <div>
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="#727A7E" d="M12 20.664a9.163 9.163 0 0 1-6.521-2.702.977.977 0 0 1 1.381-1.381 7.269 7.269 0 0 0 10.024.244.977.977 0 0 1 1.313 1.445A9.192 9.192 0 0 1 12 20.664zm7.965-6.112a.977.977 0 0 1-.944-1.229 7.26 7.26 0 0 0-4.8-8.804.977.977 0 0 1 .594-1.86 9.212 9.212 0 0 1 6.092 11.169.976.976 0 0 1-.942.724zm-16.025-.39a.977.977 0 0 1-.953-.769 9.21 9.21 0 0 1 6.626-10.86.975.975 0 1 1 .52 1.882l-.015.004a7.259 7.259 0 0 0-5.223 8.558.978.978 0 0 1-.955 1.185z"></path></svg>
+                          </div> -->
+                          <div class="ml-4">
+                            <a href="{% url 'appSMS:crear_grupo' %}">
+                              <i class="fa-solid fa-user-group fa-xl icon icono"></i>
+                            </a>
+                          </div>
+                          <div class="ml-4">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="#263238" fill-opacity=".6" d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z"></path></svg>
+                          </div>
+                      </div>
+                  </div>
+
+                  <!-- Search -->
+                  <div class="py-2 px-2 bg-grey-lightest">
+                      <input type="text" id="search-input" class="form-control w-full px-2 py-2 text-sm" placeholder="Buscar usuario o grupo..."/>
+                  </div>
+
+                  <!-- Contactos -->
+                  <div class="bg-grey-lighter flex-1 overflow-auto">
+                    <!-- Lista de chats grupales -->
+                      <div class="px-2 flex items-center bg-grey-light cursor-pointer">
+                          <div class="ml-4 flex-1 py-3">
+                            
+                            <ul class="list-unstyled chat-list mt-0 mb-0 space-y-2" id="group-list">
+                                {% for group in groups %}
+                                <li
+                                  class="clearfix {% if group == selected_group %}active{% endif %}"
+                                >
+                                  <a
+                                    href="{% url 'appSMS:chat_grupal' group_name=group.name %}"
+                                    class="clearfix flex items-center space-x-4 hover:bg-gray-200 rounded-lg transition hover:no-underline focus:no-underline active:no-underline"
+                                  >
+                                    <img
+                                      src="{{ group.avatar.url }}"
+                                      class="h-12 w-12 rounded-full"
+                                      alt="group-avatar" onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';"
+                                    />
+                                    <div class="about w-full">
+                                      <div class="name border-b border-grey-lighter pb-2 w-full">{{ group.name }}</div>
+                                    </div>
+                                  </a>
+                                </li>
+                                {% empty %}
+                                <li>
+                                  <div class="no-chat">No estás en ningún grupo</div>
+                                </li>
+                                {% endfor %}
+                              </ul>
+
+                          </div>
+                      </div>
+
+                      <!-- Lista de chats individuales -->
+                      <div class="px-2 flex items-center bg-grey-light cursor-pointer">
+                        <div class="ml-4 flex-1">
+                            <ul class="list-unstyled chat-list space-y-2" id="user-list">
+                                {% for user in users %}
+                                <li class="clearfix {% if user == other_user %}active{% endif %}">
+                                  <a
+                                    href="{% url 'appSMS:chat_privado' username=user.username %}"
+                                    class="clearfix flex items-center space-x-4 hover:bg-gray-200 rounded-lg transition hover:no-underline focus:no-underline active:no-underline"
+                                  >
+                                    <img
+                                      src="{{ user.userprofile.avatar.url }}"
+                                      class="h-12 w-12 rounded-full"
+                                      alt="avatar" onerror="this.onerror=null; this.src='{{ MEDIA_URL }}avatars/default.png'"
+                                    />
+                                    <div class="about w-full">
+                                      <div class="name pb-2 border-b border-grey-lighter">
+                                        {{ user.username }} {% if user.username == request.user.username %} (Tú){% endif %}  
+                                      </div>
+                                      
+                                    </div>
+                                  </a>
+                                </li>
+                                {% endfor %}
+                              </ul>
+                                <!-- Mensaje "Sin resultados" (Oculto por defecto) -->
+                               <div id="no-results" class="hidden text-center text-gray-500 py-2">
+                                    <span>Sin resultados...</span>
+                               </div>
+                        </div>
                     </div>
                   </div>
-                </a>
-              </li>
-              {% empty %}
-              <li>
-                <div class="no-chat">No estás en ningún grupo</div>
-              </li>
-              {% endfor %}
-            </ul>
+              </div>
 
-            <!-- Lista de chats individuales -->
-            <h5
-              class="chat-section-title"
-              onclick="toggleSection('user-list', this)"
-            >
-              Chats Individuales <i class="fa fa-chevron-down toggle-icon"></i>
-            </h5>
-            <ul class="list-unstyled chat-list mt-2 mb-0" id="user-list">
-              {% for user in users %}
-              <li class="clearfix {% if user == other_user %}active{% endif %}">
-                <a
-                  href="{% url 'appSMS:chat_privado' username=user.username %}"
-                  class="clearfix"
-                >
-                  <img
-                    src="{{ user.userprofile.avatar.url }}"
-                    alt="avatar" onerror="this.onerror=null; this.src='{{ MEDIA_URL }}avatars/default.png'"
-                  />
-                  <div class="about">
-                    <div class="name">
-                      {{ user.username }} {% if user.username == request.user.username %} (Tú){% endif %}  
+
+              <!-- Chat -->
+              <div class="w-2/3 border flex flex-col">
+
+                  <!-- Cabecera info. chat -->
+                  <div class="py-2 px-3 bg-grey-lighter flex flex-row justify-between items-center">
+                    <div class="flex items-center">
+                        {% if selected_group %}
+                            <!-- Mostrar nombre del grupo -->
+                            <a href="{% url 'appSMS:update_group_avatar' group_id=selected_group.id %}">
+                                <img
+                                    class="w-10 h-10 rounded-full"
+                                    src="{{ selected_group.avatar.url }}"
+                                    alt="group-avatar"
+                                    title="Cambiar imagen"
+                                    style="cursor: pointer"
+                                    onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';"
+                                />
+                            </a>
+                            <div class="ml-2">
+                                <p class="text-grey-darkest">{{ selected_group.name }}</p>
+
+                                <!-- <p class="text-grey-darker text-xs mt-1">
+                                    para mostrar los usuarios del grupo(futuro)
+                                </p> -->
+                            </div>
+                
+                        {% elif other_user %}
+                            <!-- Mostrar nombre del usuario en chat individual -->
+                            <img
+                                class="w-10 h-10 rounded-full"
+                                src="{{ other_user.userprofile.avatar.url }}"
+                                alt="avatar"
+                                onerror="this.onerror=null; this.src='{{ MEDIA_URL }}avatars/default.png';"
+                            />
+                            <div class="ml-2">
+                                <p class="text-grey-darkest">{{ other_user.username }}</p>
+                            </div>
+                
+                        {% else %}
+                            <!-- Mensaje si no hay usuario ni grupo seleccionado -->
+                            <div class="ml-4">
+                                <p class="text-grey-darkest">Selecciona un usuario o grupo para iniciar una conversación.</p>
+                            </div>
+                        {% endif %}
                     </div>
-                    <!-- <div class="status">
-                      <i
-                        class="fa fa-circle {% if user == other_user %}online{% else %}offline{% endif %}"
-                      ></i>
-                      {% if user == other_user %} en línea {% else %}
-                      desconectado {% endif %}
-                    </div> -->
-                  </div>
-                </a>
-              </li>
-              {% endfor %}
-            </ul>
-            <div id="no-results">
-              <span>sin resultados</span>
-            </div>
-          </div>
 
-          <!-- Columna derecha: Chat -->
-          <div class="chat">
-            <div class="chat-header clearfix">
-              <div class="row">
-                <div class="col-lg-6">
-                  {% if selected_group %}
-                  <!-- Mostrar nombre del grupo -->
-                  <a href="{% url 'appSMS:update_group_avatar' group_id=selected_group.id %}">
-                    <img
-                      src="{{ selected_group.avatar.url }}"
-                      alt="group-avatar"
-                      title="Cambiar imagen"
-                      style="cursor: pointer"
-                      onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';"
-                    />
-                  </a>
-                  
-                  <div class="chat-about">
-                    <h6 class="m-b-0">{{ selected_group.name }}</h6>
+                      <div class="flex">
+                          <!-- <div>
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="#263238" fill-opacity=".5" d="M15.9 14.3H15l-.3-.3c1-1.1 1.6-2.7 1.6-4.3 0-3.7-3-6.7-6.7-6.7S3 6 3 9.7s3 6.7 6.7 6.7c1.6 0 3.2-.6 4.3-1.6l.3.3v.8l5.1 5.1 1.5-1.5-5-5.2zm-6.2 0c-2.6 0-4.6-2.1-4.6-4.6s2.1-4.6 4.6-4.6 4.6 2.1 4.6 4.6-2 4.6-4.6 4.6z"></path></svg>
+                          </div> -->
+                          <!-- <div class="ml-6">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="#263238" fill-opacity=".5" d="M1.816 15.556v.002c0 1.502.584 2.912 1.646 3.972s2.472 1.647 3.974 1.647a5.58 5.58 0 0 0 3.972-1.645l9.547-9.548c.769-.768 1.147-1.767 1.058-2.817-.079-.968-.548-1.927-1.319-2.698-1.594-1.592-4.068-1.711-5.517-.262l-7.916 7.915c-.881.881-.792 2.25.214 3.261.959.958 2.423 1.053 3.263.215l5.511-5.512c.28-.28.267-.722.053-.936l-.244-.244c-.191-.191-.567-.349-.957.04l-5.506 5.506c-.18.18-.635.127-.976-.214-.098-.097-.576-.613-.213-.973l7.915-7.917c.818-.817 2.267-.699 3.23.262.5.501.802 1.1.849 1.685.051.573-.156 1.111-.589 1.543l-9.547 9.549a3.97 3.97 0 0 1-2.829 1.171 3.975 3.975 0 0 1-2.83-1.173 3.973 3.973 0 0 1-1.172-2.828c0-1.071.415-2.076 1.172-2.83l7.209-7.211c.157-.157.264-.579.028-.814L11.5 4.36a.572.572 0 0 0-.834.018l-7.205 7.207a5.577 5.577 0 0 0-1.645 3.971z"></path></svg>
+                          </div> -->
+                          <div class="ml-6">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="#263238" fill-opacity=".6" d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z"></path></svg>
+                          </div>
+                      </div>
                   </div>
-                  <div class="delete">
-                    <!-- Botón para vaciar el chat grupal -->
-                    <button
-                      id="delete-group-chat"
-                      class="btn btn-danger vaciar-chat"
-                      style="float: right"
-                    >
-                      Vaciar Chat
-                    </button>
-                  </div>
-                  {% elif other_user %}
-                  <!-- Mostrar nombre del usuario en chat individual -->
-                  <img
-                  src="{{ other_user.userprofile.avatar.url }}"
-                  alt="avatar" onerror="this.onerror=null; this.src='{{ MEDIA_URL }}avatars/default.png'"
-                  />
-                  <div class="chat-about">
-                    <h6 class="m-b-0">{{ other_user.username }}</h6>
-                  </div>
-                  <div class="delete">
-                    <!-- Botón para vaciar el chat individual -->
-                    <button
-                      id="delete-chat"
-                      class="btn btn-danger vaciar-chat"
-                      style="float: right"
-                    >
-                      Vaciar Chat
-                    </button>
-                  </div>
-                  {% else %}
-                  <h6 class="m-b-0">
-                    Selecciona un usuario o grupo para iniciar una conversación.
-                  </h6>
-                  {% endif %}
+
+                  <!-- Chat mensajes -->
+                  <div class="flex-1 overflow-auto bg-[#DAD3CC]">
+                    <div class="py-2 px-3">
+                        <ul class="space-y-2" id="chat-log">
+                            {% for message in messages %}
+                                {% if message.sender.username == request.user.username %}
+                                    <!-- Mensaje del emisor (Usuario actual) -->
+                                    <div id="message-{{ message.id }}" class="flex justify-end mb-2">
+                                        <div class="rounded py-2 px-3 bg-[#E2F7CB] max-w-xs">
+                                            <p class="text-sm mt-1">
+                                                {{ message.content }}
+                                            </p>
+                                            {% if message.file %}
+                                                <div class="mt-1">
+                                                    <a href="{{ message.file.url }}" target="_blank" class="text-blue-600 text-sm underline">
+                                                        Descargar archivo
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                            <p class="text-right text-xs text-gray-500 mt-1">
+                                                {{ message.timestamp|date:"H:i A" }}
+                                            </p>
+                
+                                            <!-- Opciones de mensaje -->
+                                            <div class="message-options relative mt-1">
+                                                <span class="options-icon text-gray-400 cursor-pointer text-sm" 
+                                                      onclick="toggleMenu('{{ message.id }}')">
+                                                    &#x2026;
+                                                </span>
+                                                <div class="options-menu absolute right-0 bg-white shadow-md rounded-md p-2 hidden" 
+                                                     id="menu-{{ message.id }}">
+                                                    <button class="block text-sm text-gray-700 hover:bg-gray-200 px-2 py-1 rounded-md w-full" 
+                                                        onclick="deleteMessage('{{ message.id }}')">
+                                                        Eliminar para mí
+                                                    </button>
+                                                    <button class="block text-sm text-red-600 hover:bg-red-100 px-2 py-1 rounded-md w-full"
+                                                        onclick="deleteMessageForAll('{{ message.id }}')">
+                                                        Eliminar para todos
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <!-- Mensaje del receptor -->
+                                    <div id="message-{{ message.id }}" class="flex mb-2">
+                                        <div class="rounded py-2 px-3 bg-[#F2F2F2] max-w-xs">
+                                            <p class="text-sm font-bold text-teal-700">
+                                                {{ message.sender.username }}
+                                            </p>
+                                            <p class="text-sm mt-1">
+                                                {{ message.content }}
+                                            </p>
+                                            {% if message.file %}
+                                                <div class="mt-1">
+                                                    <a href="{{ message.file.url }}" target="_blank" class="text-blue-600 text-sm underline">
+                                                        Descargar archivo
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                            <p class="text-right text-xs text-gray-500 mt-1">
+                                                {{ message.timestamp|date:"H:i A" }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
-              </div>
-            </div>
+                
 
-            <!-- Historial de mensajes -->
-            <div class="chat-history">
-              <ul class="m-b-0" id="chat-log">
-                {% for message in messages %}
-                <li class="clearfix">
-                  <div
-                    class="message-data {% if message.sender.username == request.user.username %}text-right{% endif %}"
-                  >
-                    <span class="message-data-time">
-                      {{ message.timestamp|date:"H:i A, j M" }}
-                    </span>
-                  </div>
-                  <div
-                    class="message {% if message.sender.username == request.user.username %}my-message{% else %}other-message float-right{% endif %}"
-                  >
-                    <strong>
-                      {% if message.sender.username == request.user.username %}
-                      Yo: {% else %} {{ message.sender.username }}: {% endif %}
-                    </strong>
-                    {{ message.content }} {% if message.file %}
-                    <div class="file-attachment">
-                      <a href="{{ message.file.url }}" target="_blank">
-                        descargar
-                      </a>
-                    </div>
-                    {% endif %} {% if message.sender.username == request.user.username %}
-                    <div class="message-options">
-                      <span
-                        class="options-icon"
-                        onclick="toggleMenu('{{ message.id }}')"
-                        >...</span
-                      >
-                      <div class="options-menu" id="menu-{{ message.id }}">
-                        <button onclick="deleteMessage('{{ message.id }}')">
-                          Eliminar para mí
-                        </button>
-                        <button
-                          onclick="deleteMessageForAll('{{ message.id }}')"
-                        >
-                          Eliminar para todos
+                  <!-- Input envio sms y archivo -->
+                  <div class="input-group bg-grey-lighter px-4 py-4 flex items-center">
+                      <div>
+                        <input
+                          id="chat-file-input"
+                          type="file"
+                          name="file"
+                          class="form-control"
+                          style="display: none"
+                          accept=".doc,.docx,.pdf,.jpg,.png,.mp4,.avi,.mov,.mkv"
+                        />
+                        <button id="chat-file-button" class="btn btn-secondary">
+                          <i class="fa fa-paperclip" ></i>
                         </button>
                       </div>
-                    </div>
-                    {% endif %}
+                      <div class="flex-1 mx-4">
+                          <input 
+                            id="chat-message-input"
+                            class="form-control w-full border rounded px-2 py-2"
+                            type="text"
+                            name="content"
+                            placeholder="Escribe un mensaje..."
+                            autocomplete="off"
+                            />
+                      </div>
+                      <div class="input-group-append">
+                        <button
+                        id="chat-message-submit"
+                        type="button"
+                        class="btn btn-primary"
+                      >
+                        Enviar
+                      </button>
+                      </div>
                   </div>
-                </li>
-              {% endfor %}
-              </ul>
-            </div>
+              </div>
 
-            {% if selected_group or other_user %}
-            <div class="chat-message clearfix">
-              <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="input-group mb-0">
-                  <input
-                    id="chat-message-input"
-                    type="text"
-                    name="content"
-                    class="form-control"
-                    placeholder="Escribe un mensaje..."
-                    autocomplete="off"
-                  />
-                  <input
-                    id="chat-file-input"
-                    type="file"
-                    name="file"
-                    class="form-control"
-                    style="display: none"
-                    accept=".doc,.docx,.pdf,.jpg,.png,.mp4,.avi,.mov,.mkv"
-                  />
-                  <button id="chat-file-button" class="btn btn-secondary">
-                    <i class="fa fa-paperclip"></i>
-                  </button>
-                  <div class="input-group-append">
-                    <button
-                      id="chat-message-submit"
-                      type="button"
-                      class="btn btn-primary"
-                    >
-                      Enviar
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-            {% endif %}
           </div>
-        </div>
       </div>
     </div>
   </div>
-  {% endblock %} {% block extra_js %}
+  {% endblock %} 
+  
+  {% block extra_js %}
   <script>
     const username = "{{ request.user.username }}"; //
     const roomName = "{{ room_name }}"; //
-    const groupName =
-      "{% if selected_group %}{{ selected_group.name }}{% endif %}";
+    const groupName = "{% if selected_group %}{{ selected_group.name }}{% endif %}";
+      
   </script>
   <script src="{% static 'js/sala.js' %}"></script>
   {% endblock %}

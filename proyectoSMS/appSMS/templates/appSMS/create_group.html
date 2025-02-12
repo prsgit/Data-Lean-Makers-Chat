@@ -1,89 +1,125 @@
-{% extends 'appSMS/index.html' %} {% load static %}
+{% extends 'appSMS/index.html' %}
+{% load static %}
+
 <title>{% block title %}Crear Grupo{% endblock %}</title>
 
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+  html {
+    font-family: 'Inter', sans-serif;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/create_group.css' %}" />
-<div class="container mt-5 create-group-container">
-  <h2 class="mb-4">Crear Grupo de Chat</h2>
+<div
+  class="h-screen flex justify-center items-center bg-cover bg-center relative px-4"
+  style="background-image: url('/static/img/home.jpg')"
+>
+  <!-- Overlay con opacidad -->
+  <div class="absolute inset-0 bg-black bg-opacity-50"></div>
 
-  <!-- Contenedor de alerta -->
-  {% if messages %}
-  <div class="mb-3">
-    {% for message in messages %}
-    <div class="alert alert-danger" role="alert">{{ message }}</div>
-    {% endfor %}
-  </div>
-  {% endif %}
+  <!-- Contenido del formulario -->
+  <div
+    class="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-md bg-white shadow-lg rounded-lg p-4 sm:p-6 md:p-8 lg:p-6"
+  >
+    <h2 class="text-xl sm:text-2xl md:text-3xl lg:text-2xl font-bold text-center mb-4 sm:mb-6 md:mb-8 lg:mb-6 text-gray-700">
+      Crear Grupo de Chat
+    </h2>
 
-  <form method="post" enctype="multipart/form-data">
-    <!-- Soporte para subida de archivos -->
-    {% csrf_token %}
-    <div class="mb-3">
-      <label for="group_name" class="form-label">Nombre del Grupo:</label>
-      <input
-        type="text"
-        name="group_name"
-        id="group_name"
-        class="form-control"
-        required
-      />
-    </div>
-
-    <div class="mb-3 text-center">
-      <!-- Imagen del avatar -->
-      <label for="avatar" style="cursor: pointer">
-        <img
-          id="current-avatar"
-          src="{% static 'img/group_default.png' %}"
-          alt="Avatar del grupo"
-          class="img-thumbnail rounded-circle"
-          width="80"
-        />
-      </label>
-      <!-- Input oculto para subir el archivo -->
-      <input
-        type="file"
-        name="avatar"
-        id="avatar"
-        class="d-none"
-        accept="image/*"
-        onchange="previewAvatar(this)"
-      />
-      <p class="mt-2">Haz click para elegir la imagen del grupo</p>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Selecciona Miembros:</label><br />
-      <div class="member-list">
-        <!-- Contenedor para los miembros -->
-        {% for user in users %}
-        <div class="form-check">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            name="members"
-            value="{{ user.id }}"
-            id="member_{{ user.id }}"
-          />
-          <label class="form-check-label" for="member_{{ user.id }}">
-            {{ user.username }}
-          </label>
-        </div>
-        {% endfor %}
+    <!-- Contenedor de alerta -->
+    {% if messages %}
+    <div class="mb-4">
+      {% for message in messages %}
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-lg mb-2">
+        {{ message }}
       </div>
+      {% endfor %}
     </div>
+    {% endif %}
 
-    <div class="d-flex justify-content-between">
-      <button type="submit" class="btn btn-success">Crear</button>
-      <button
-        type="button"
-        class="btn btn-danger"
-        onclick="window.history.back();"
-      >
-        Atrás
-      </button>
-    </div>
-  </form>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <!-- Campo de nombre del grupo -->
+      <div class="mb-3">
+        <label for="group_name" class="block text-sm md:text-base lg:text-sm font-medium text-gray-700">
+          Nombre del Grupo:
+        </label>
+        <input
+          type="text"
+          name="group_name"
+          id="group_name"
+          class="mt-1 block w-full p-2 md:p-3 lg:p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          required
+        />
+      </div>
+
+      <!-- Imagen del avatar -->
+      <div class="mb-3 text-center">
+        <label for="avatar" class="cursor-pointer">
+          <img
+            id="current-avatar"
+            src="{% static 'img/group_default.png' %}"
+            alt="Avatar del grupo"
+            class="rounded-full mx-auto w-16 h-16 md:w-20 md:h-20 lg:w-16 lg:h-16 object-cover shadow"
+          />
+        </label>
+        <input
+          type="file"
+          name="avatar"
+          id="avatar"
+          class="hidden"
+          accept="image/*"
+          onchange="previewAvatar(this)"
+        />
+        <p class="text-xs sm:text-sm md:text-base lg:text-sm text-gray-500 mt-2">
+          Haz clic para elegir la imagen del grupo
+        </p>
+      </div>
+
+      <!-- Selección de miembros -->
+      <div class="mb-3">
+        <label class="block text-sm md:text-base lg:text-sm font-medium text-gray-700">
+          Selecciona Miembros:
+        </label>
+        <div class="border border-gray-300 rounded-lg p-2 max-h-40 overflow-y-auto space-y-2 mt-2">
+          {% for user in users %}
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              name="members"
+              value="{{ user.id }}"
+              id="member_{{ user.id }}"
+              class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label for="member_{{ user.id }}" class="ml-2 text-sm md:text-base lg:text-sm text-gray-700">
+              {{ user.username }}
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex justify-between items-center">
+        <button
+          type="submit"
+          class="px-3 sm:px-6 md:px-8 lg:px-6 py-2 md:py-3 lg:py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
+        >
+          Crear
+        </button>
+        <button
+          type="button"
+          class="px-3 sm:px-6 md:px-8 lg:px-6 py-2 md:py-3 lg:py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
+          onclick="window.history.back();"
+        >
+          Volver
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script src="{% static 'js/functions.js' %}"></script>

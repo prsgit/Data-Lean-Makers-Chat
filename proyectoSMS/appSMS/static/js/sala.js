@@ -61,30 +61,35 @@ function appendMessage(sender, message, isMyMessage, messageId) {
   const timeString = `${hours}:${minutes}`;
 
   newMessage.id = `message-${messageId}`; // Asignar ID al mensaje para manipularlo
-  newMessage.classList.add("message-item");
+  newMessage.classList.add("flex", "mb-2", isMyMessage ? "justify-end" : "");
 
   newMessage.innerHTML = `
-  <div class="message-data ${isMyMessage ? "text-right" : ""}">
-      <span class="message-data-time">${timeString}</span>
-  </div>
-  <div class="message ${
-    isMyMessage ? "my-message" : "other-message float-right"
-  }">
-      <strong>${isMyMessage ? "Yo" : sender}:</strong> ${message}
-      ${
-        isMyMessage
-          ? `
-          <div class="message-options">
-              <span class="options-icon" onclick="toggleMenu(${messageId})">...</span>
-              <div class="options-menu" id="menu-${messageId}">
-                  <button onclick="deleteMessage(${messageId})">Eliminar para mí</button>
-                  <button onclick="deleteMessageForAll(${messageId})">Eliminar para todos</button>
+ <div class="rounded py-2 px-3 ${
+   isMyMessage ? "bg-[#E2F7CB]" : "bg-[#F2F2F2]"
+ } max-w-xs">
+          ${
+            isMyMessage
+              ? ""
+              : `<p class="text-sm font-bold text-teal-700">${sender}</p>`
+          }
+          <p class="text-sm mt-1">${message}</p>
+          <p class="text-right text-xs text-gray-500 mt-1">${timeString}</p>
+          ${
+            isMyMessage
+              ? `
+              <div class="message-options relative mt-1">
+                  <span class="options-icon text-gray-400 cursor-pointer text-sm" onclick="toggleMenu('${messageId}')">...</span>
+                  <div class="options-menu absolute right-0 bg-white shadow-md rounded-md p-2 hidden" id="menu-${messageId}">
+                      <button class="block text-sm text-gray-700 hover:bg-gray-200 px-2 py-1 rounded-md w-full" 
+                          onclick="deleteMessage('${messageId}')">Eliminar para mí</button>
+                      <button class="block text-sm text-red-600 hover:bg-red-100 px-2 py-1 rounded-md w-full"
+                          onclick="deleteMessageForAll('${messageId}')">Eliminar para todos</button>
+                  </div>
               </div>
-          </div>
-      `
-          : ""
-      }
-  </div>
+          `
+              : ""
+          }
+      </div>
 `;
   chatLog.appendChild(newMessage);
   chatLog.scrollTop = chatLog.scrollHeight;
@@ -130,28 +135,32 @@ function appendFile(sender, fileUrl, isMyMessage, messageId) {
   }
 
   newMessage.innerHTML = `
-    <div class="message-data ${isMyMessage ? "text-right" : ""}">
-      <span class="message-data-time">${timeString}</span>
-    </div>
-    <div class="message ${
-      isMyMessage ? "my-message" : "other-message float-right"
-    }">
-      <strong>${isMyMessage ? "Yo" : sender}:</strong>
-      ${fileContent}
-      ${
-        isMyMessage
-          ? `
-          <div class="message-options">
-              <span class="options-icon" onclick="toggleMenu(${messageId})">...</span>
-              <div class="options-menu" id="menu-${messageId}">
-                  <button onclick="deleteMessage(${messageId})">Eliminar para mí</button>
-                  <button onclick="deleteMessageForAll(${messageId})">Eliminar para todos</button>
+         <div class="rounded py-2 px-3 ${
+           isMyMessage ? "bg-[#E2F7CB]" : "bg-[#F2F2F2]"
+         } max-w-xs">
+          ${
+            isMyMessage
+              ? ""
+              : `<p class="text-sm font-bold text-teal-700">${sender}</p>`
+          }
+          <div class="mt-1">${fileContent}</div>
+          <p class="text-right text-xs text-gray-500 mt-1">${timeString}</p>
+          ${
+            isMyMessage
+              ? `
+              <div class="message-options relative mt-1">
+                  <span class="options-icon text-gray-400 cursor-pointer text-sm" onclick="toggleMenu('${messageId}')">...</span>
+                  <div class="options-menu absolute right-0 bg-white shadow-md rounded-md p-2 hidden" id="menu-${messageId}">
+                      <button class="block text-sm text-gray-700 hover:bg-gray-200 px-2 py-1 rounded-md w-full" 
+                          onclick="deleteMessage('${messageId}')">Eliminar para mí</button>
+                      <button class="block text-sm text-red-600 hover:bg-red-100 px-2 py-1 rounded-md w-full"
+                          onclick="deleteMessageForAll('${messageId}')">Eliminar para todos</button>
+                  </div>
               </div>
-          </div>
-      `
-          : ""
-      }
-    </div>
+          `
+              : ""
+          }
+      </div>
   `;
 
   chatLog.appendChild(newMessage);
@@ -309,7 +318,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Muestra u oculta el mensaje "Sin resultados"
-    noResultsMessage.style.display = hasResults ? "none" : "block";
+    if (hasResults) {
+      noResultsMessage.classList.add("hidden");
+    } else {
+      noResultsMessage.classList.remove("hidden");
+    }
   }
 
   // Busca al escribir en el input
@@ -318,36 +331,36 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// Función para los desplegables de grupos y chats individuales
-document.addEventListener("DOMContentLoaded", function () {
-  const sections = ["group-list", "user-list"];
+// // Función para los desplegables de grupos y chats individuales
+// document.addEventListener("DOMContentLoaded", function () {
+//   const sections = ["group-list", "user-list"];
 
-  sections.forEach((sectionId) => {
-    const section = document.getElementById(sectionId);
-    const estado = localStorage.getItem(sectionId);
-    if (estado === "abierto") {
-      section.classList.add("active");
-    } else {
-      section.classList.remove("active");
-    }
-  });
-});
+//   sections.forEach((sectionId) => {
+//     const section = document.getElementById(sectionId);
+//     const estado = localStorage.getItem(sectionId);
+//     if (estado === "abierto") {
+//       section.classList.add("active");
+//     } else {
+//       section.classList.remove("active");
+//     }
+//   });
+// });
 
-// Función para abrir y cerrar desplegables
-function toggleSection(sectionId, element) {
-  const section = document.getElementById(sectionId);
-  if (section) {
-    section.classList.toggle("active");
-    const icon = element.querySelector(".toggle-icon");
-    if (icon) {
-      icon.classList.toggle("fa-chevron-down");
-      icon.classList.toggle("fa-chevron-up");
-    }
-    // Guardar el estado en localStorage
-    const estado = section.classList.contains("active") ? "abierto" : "cerrado";
-    localStorage.setItem(sectionId, estado);
-  }
-}
+// // Función para abrir y cerrar desplegables
+// function toggleSection(sectionId, element) {
+//   const section = document.getElementById(sectionId);
+//   if (section) {
+//     section.classList.toggle("active");
+//     const icon = element.querySelector(".toggle-icon");
+//     if (icon) {
+//       icon.classList.toggle("fa-chevron-down");
+//       icon.classList.toggle("fa-chevron-up");
+//     }
+//     // Guardar el estado en localStorage
+//     const estado = section.classList.contains("active") ? "abierto" : "cerrado";
+//     localStorage.setItem(sectionId, estado);
+//   }
+// }
 
 // Función para vaciar el chat grupal completo
 document.addEventListener("DOMContentLoaded", function () {
@@ -406,7 +419,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function toggleMenu(messageId) {
   const menu = document.getElementById(`menu-${messageId}`);
   if (menu) {
-    menu.classList.toggle("visible");
+    menu.classList.toggle("hidden"); // Alterna entre ocultar y mostrar
   }
 }
 

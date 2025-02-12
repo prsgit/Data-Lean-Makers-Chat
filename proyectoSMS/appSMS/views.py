@@ -106,11 +106,10 @@ def update_profile(request):
     return render(request, 'appSMS/update_profile.html', {'user_profile': user_profile})
 
 
-
 # cambiar imagen de perfil de un grupo
 @login_required
 def update_group_avatar(request, group_id):
-  
+
     try:
         # Obtener el grupo por su ID
         group = GroupChat.objects.get(id=group_id)
@@ -125,22 +124,23 @@ def update_group_avatar(request, group_id):
                 # Valida si el archivo es una imagen válida usando Pillow
                 img = Image.open(avatar)
                 img.verify()  # Verifica que es una imagen válida
-                
+
                 # Guardar el nuevo avatar del grupo
                 group.avatar = avatar
                 group.save()
-                
+
                 return redirect('appSMS:chat_grupal', group_name=group.name)
             except (IOError, SyntaxError):
                 # Maneja el caso en que el archivo no sea una imagen válida
-                messages.error(request, 'Por favor, sube un archivo de imagen válido.')
+                messages.error(
+                    request, 'Por favor, sube un archivo de imagen válido.')
         else:
             # Caso en que no se seleccione un archivo
-            messages.error(request, 'Por favor, selecciona un archivo para subir.')
+            messages.error(
+                request, 'Por favor, selecciona un archivo para subir.')
 
     # Renderizar la página de actualización para solicitudes GET o en caso de error
     return render(request, 'appSMS/update_profile_group.html', {'group': group})
-
 
 
 @login_required
@@ -170,6 +170,8 @@ def chat_privado(request, username=None):
             sender=request.user, sender_deleted=True
         ).exclude(
             receiver=request.user, receiver_deleted=True
+        ).exclude(
+            deleted_for_all=True
         ).order_by('timestamp')
 
         if request.method == "POST":
@@ -230,9 +232,12 @@ def group_list(request):
 def create_group(request):
     if request.method == "POST":
 
-        group_name = request.POST.get("group_name") # Captura el nombre del grupo
-        members = request.POST.getlist("members") # Captura los IDs de los miembros seleccionados
-        avatar = request.FILES.get("avatar") # Captura el archivo del avatar subido
+        # Captura el nombre del grupo
+        group_name = request.POST.get("group_name")
+        # Captura los IDs de los miembros seleccionados
+        members = request.POST.getlist("members")
+        # Captura el archivo del avatar subido
+        avatar = request.FILES.get("avatar")
 
         # Valida si se seleccionaron miembros
         if not members:
@@ -243,14 +248,15 @@ def create_group(request):
         if GroupChat.objects.filter(name=group_name).exists():
             messages.error(request, "El grupo ya existe.")
             return redirect('appSMS:crear_grupo')
-        
+
          # Valida si el archivo subido es una imagen válida
         if avatar:
             try:
                 img = Image.open(avatar)
                 img.verify()  # Verifica si el archivo es una imagen válida
             except (IOError, SyntaxError):
-                messages.error(request, 'Por favor, sube un archivo de imagen válido.')
+                messages.error(
+                    request, 'Por favor, sube un archivo de imagen válido.')
                 return redirect('appSMS:crear_grupo')
 
         # Crea el grupo
@@ -260,9 +266,10 @@ def create_group(request):
         )
         group.save()  # Guarda el grupo en la base de datos
 
-        
-        group.members.add(request.user) # Añade al usuario creador como miembro
-        group.members.add(*User.objects.filter(id__in=members)) # Añadir los demás miembros seleccionados
+        # Añade al usuario creador como miembro
+        group.members.add(request.user)
+        # Añadir los demás miembros seleccionados
+        group.members.add(*User.objects.filter(id__in=members))
 
         # Redirige al chat grupal
         return redirect('appSMS:chat_grupal', group_name=group.name)
@@ -283,8 +290,13 @@ def group_chat(request, group_name):
 
     users = User.objects.exclude(username='admin')
     groups = GroupChat.objects.filter(members=request.user)
-    messages = GroupMessage.objects.filter(group=group).exclude(
-        deleted_by=request.user).order_by('timestamp')
+    messages = GroupMessage.objects.filter(
+        group=group
+    ).exclude(
+        deleted_by=request.user
+    ).exclude(
+        deleted_for_all=True
+    ).order_by('timestamp')
 
     if request.method == "POST":
         content = request.POST.get("content", "").strip()

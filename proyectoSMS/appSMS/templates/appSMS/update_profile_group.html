@@ -1,71 +1,88 @@
-{% extends 'appSMS/index.html' %} {% load static %}
+{% extends 'appSMS/index.html' %}
+{% load static %}
 
 <title>{% block title %}Actualizar perfil de grupo{% endblock %}</title>
 
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+  html {
+    font-family: 'Inter', sans-serif;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/login.css' %}" />
+<div
+  class="h-screen flex justify-center items-center bg-cover bg-center relative px-4"
+  style="background-image: url('/static/img/home.jpg')"
+>
+  <!-- Overlay con opacidad -->
+  <div class="absolute inset-0 bg-black bg-opacity-50"></div>
 
-<div class="container-fluid">
-  <div class="overlay"></div>
-  <div class="d-flex align-items-center justify-content-center h-100">
-    <div class="login-container text-center">
-      <h2>Perfil de Grupo</h2>
+  <!-- Contenedor del perfil de grupo -->
+  <div
+    class="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-md bg-white shadow-lg rounded-lg p-4 sm:p-6 md:p-8 lg:p-6"
+  >
+    <h2 class="text-xl sm:text-2xl md:text-3xl lg:text-2xl font-bold text-center mb-4 sm:mb-6 md:mb-8 lg:mb-6 text-gray-700">
+      Perfil de Grupo
+    </h2>
 
-      <!-- Mensajes de error -->
-      {% if messages %} {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-      {% endfor %} {% endif %}
+    <!-- Mensajes de éxito o error -->
+    {% if messages %} 
+      {% for message in messages %}
+        {% if message.tags != "success" %}
+          <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-lg mb-2">
+            {{ message }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
 
-      <!-- Formulario para subir avatar -->
-      <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
+    <!-- Formulario para subir avatar del grupo -->
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
 
-        <!-- Imagen actual que actúa como botón -->
-        <div class="mb-3 text-center">
-          <label for="avatar" style="cursor: pointer">
-            <img
-              src="{{ group.avatar.url }}"
-              alt="Avatar del grupo"
-              id="current-avatar"
-              class="img-thumbnail rounded-circle"
-              width="80"
-            />
-          </label>
-          <input
-            type="file"
-            name="avatar"
-            class="d-none"
-            id="avatar"
-            accept="image/*"
-            onchange="previewAvatar(this)"
-          />
-          <p class="mt-2">Haz click en la imagen</p>
-        </div>
-
-        <!-- Vista previa de la nueva imagen -->
-        <div class="mb-3 text-center">
+      <!-- Imagen actual del grupo que actúa como botón -->
+      <div class="mb-4 text-center">
+        <label for="avatar" class="cursor-pointer">
           <img
-            id="preview-avatar"
-            src="#"
-            alt="Vista previa"
-            class="img-thumbnail rounded-circle d-none"
-            width="80"
+            src="{{ group.avatar.url }}"
+            alt="Avatar del grupo"
+            id="current-avatar"
+            class="rounded-full mx-auto w-20 h-20 sm:w-28 sm:h-28 md:w-28 md:h-28 lg:w-20 lg:h-20 object-cover shadow"
           />
-        </div>
+        </label>
+        <input
+          type="file"
+          name="avatar"
+          class="hidden"
+          id="avatar"
+          accept="image/*"
+          onchange="previewAvatar(this)"
+        />
+        <p class="text-xs sm:text-sm text-gray-500 mt-2">Haz clic en la imagen para cambiarla</p>
+      </div>
 
-        <button type="submit" class="btn btn-success">Actualizar</button>
-      </form>
-
-      <!-- Enlace para volver -->
-      <p class="mt-3">
-        <span>¿No deseas cambiar la imagen del grupo?</span>
-        <a
-          href="{% url 'appSMS:chat_grupal' group_name=group.name %}"
-          style="color: #2e7d32"
-          >Volver</a
+      <!-- Botón de actualizar -->
+      <div class="flex justify-center items-center">
+        <button
+          type="submit"
+          class="px-3 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition focus:outline-none focus:ring-2 focus:ring-green-300 w-auto text-center"
         >
-      </p>
-    </div>
+          Actualizar
+        </button>
+      </div>
+    </form>
+
+    <!-- Enlace para volver -->
+    <p class="mt-4 text-center text-sm sm:text-base">
+      <span>¿No deseas cambiar la imagen del grupo?</span>
+      <a href="{% url 'appSMS:chat_grupal' group_name=group.name %}" class="text-green-600 hover:underline">
+        Volver
+      </a>
+    </p>
   </div>
 </div>
 
