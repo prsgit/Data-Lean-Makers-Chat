@@ -331,37 +331,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// // Función para los desplegables de grupos y chats individuales
-// document.addEventListener("DOMContentLoaded", function () {
-//   const sections = ["group-list", "user-list"];
-
-//   sections.forEach((sectionId) => {
-//     const section = document.getElementById(sectionId);
-//     const estado = localStorage.getItem(sectionId);
-//     if (estado === "abierto") {
-//       section.classList.add("active");
-//     } else {
-//       section.classList.remove("active");
-//     }
-//   });
-// });
-
-// // Función para abrir y cerrar desplegables
-// function toggleSection(sectionId, element) {
-//   const section = document.getElementById(sectionId);
-//   if (section) {
-//     section.classList.toggle("active");
-//     const icon = element.querySelector(".toggle-icon");
-//     if (icon) {
-//       icon.classList.toggle("fa-chevron-down");
-//       icon.classList.toggle("fa-chevron-up");
-//     }
-//     // Guardar el estado en localStorage
-//     const estado = section.classList.contains("active") ? "abierto" : "cerrado";
-//     localStorage.setItem(sectionId, estado);
-//   }
-// }
-
 // Función para vaciar el chat grupal completo
 document.addEventListener("DOMContentLoaded", function () {
   const deleteGroupChatButton = document.getElementById("delete-group-chat");
@@ -391,7 +360,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // Función para vaciar el chat individual completo
 document.addEventListener("DOMContentLoaded", function () {
   const deleteChatButton = document.getElementById("delete-chat");
-  const roomName = document.getElementById("room-name").value; // Obtener el roomName del input oculto
+  // const roomName = document.getElementById("room-name").value; // Obtener el roomName del input oculto
 
   if (deleteChatButton) {
     deleteChatButton.onclick = function () {
@@ -414,6 +383,37 @@ document.addEventListener("DOMContentLoaded", function () {
     };
   }
 });
+
+// Función para menu cerrar sesion
+function toggleMenuOptions() {
+  const menu = document.getElementById("menu-options");
+  menu.classList.toggle("hidden"); // Alternar la visibilidad del menú
+
+  // Cerrar el menú si se hace clic fuera
+  document.addEventListener("click", function closeMenu(event) {
+    if (!menu.contains(event.target) && event.target.closest("i") === null) {
+      menu.classList.add("hidden");
+      document.removeEventListener("click", closeMenu);
+    }
+  });
+}
+
+// Función para mostrar/ocultar el menú "Vaciar Chat"
+function toggleChatMenu() {
+  const chatMenu = document.getElementById("chat-menu-options");
+  chatMenu.classList.toggle("hidden"); // Alternar la visibilidad del menú
+
+  // Cerrar el menú si se hace clic fuera
+  document.addEventListener("click", function closeChatMenu(event) {
+    if (
+      !chatMenu.contains(event.target) &&
+      event.target.closest("i") === null
+    ) {
+      chatMenu.classList.add("hidden");
+      document.removeEventListener("click", closeChatMenu);
+    }
+  });
+}
 
 // Función para mostrar/ocultar el menú de opciones de un mensaje
 function toggleMenu(messageId) {
