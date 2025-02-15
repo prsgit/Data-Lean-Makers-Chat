@@ -51,6 +51,7 @@ chatSocket.onerror = function (e) {
   console.error("Error en la conexión WebSocket: ", e);
 };
 
+//Función de agregar mensajes al chat
 function appendMessage(sender, message, isMyMessage, messageId) {
   const chatLog = document.querySelector("#chat-log");
   const currentTime = new Date();
@@ -115,6 +116,7 @@ function appendMessage(sender, message, isMyMessage, messageId) {
   chatLog.scrollTop = chatLog.scrollHeight;
 }
 
+// Funcion para agregar archivos al chat
 function appendFile(sender, fileUrl, isMyMessage, messageId) {
   const chatLog = document.querySelector("#chat-log");
   const currentTime = new Date();
