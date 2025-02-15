@@ -51,119 +51,164 @@ chatSocket.onerror = function (e) {
   console.error("Error en la conexión WebSocket: ", e);
 };
 
-// Función para agregar mensajes al chat
 function appendMessage(sender, message, isMyMessage, messageId) {
   const chatLog = document.querySelector("#chat-log");
-  const newMessage = document.createElement("li");
   const currentTime = new Date();
-  const hours = currentTime.getHours().toString().padStart(2, "0");
-  const minutes = currentTime.getMinutes().toString().padStart(2, "0");
-  const timeString = `${hours}:${minutes}`;
+  const timeString = currentTime.toLocaleTimeString("es-ES", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour24: true,
+  });
 
-  newMessage.id = `message-${messageId}`; // Asignar ID al mensaje para manipularlo
-  newMessage.classList.add("flex", "mb-2", isMyMessage ? "justify-end" : "");
-
-  newMessage.innerHTML = `
- <div class="rounded py-2 px-3 ${
-   isMyMessage ? "bg-[#E2F7CB]" : "bg-[#F2F2F2]"
- } max-w-xs">
-          ${
-            isMyMessage
-              ? ""
-              : `<p class="text-sm font-bold text-teal-700">${sender}</p>`
-          }
-          <p class="text-sm mt-1">${message}</p>
-          <p class="text-right text-xs text-gray-500 mt-1">${timeString}</p>
-          ${
-            isMyMessage
-              ? `
-              <div class="message-options relative mt-1">
-                  <span class="options-icon text-gray-400 cursor-pointer text-sm" onclick="toggleMenu('${messageId}')">...</span>
-                  <div class="options-menu absolute right-0 bg-white shadow-md rounded-md p-2 hidden" id="menu-${messageId}">
-                      <button class="block text-sm text-gray-700 hover:bg-gray-200 px-2 py-1 rounded-md w-full" 
-                          onclick="deleteMessage('${messageId}')">Eliminar para mí</button>
-                      <button class="block text-sm text-red-600 hover:bg-red-100 px-2 py-1 rounded-md w-full"
-                          onclick="deleteMessageForAll('${messageId}')">Eliminar para todos</button>
-                  </div>
-              </div>
-          `
-              : ""
-          }
+  if (isMyMessage) {
+    // Mensaje del emisor
+    const messageHTML = `
+      <div id="message-${messageId}" class="flex justify-end mb-2">
+        <div class="rounded py-2 px-3 bg-[#E2F7CB] max-w-xs">
+          <p class="text-sm mt-1">
+            ${message}
+          </p>
+          <p class="text-right text-xs text-gray-500 mt-1">
+            ${timeString}
+          </p>
+          <div class="message-options relative mt-1">
+            <span class="options-icon text-gray-400 cursor-pointer text-sm"
+                  onclick="toggleMenu('${messageId}')">
+              &#x2026;
+            </span>
+            <div class="options-menu absolute right-0 bg-white shadow-md rounded-md p-2 hidden"
+                 id="menu-${messageId}">
+              <button class="block text-sm text-gray-700 hover:bg-gray-200 px-2 py-1 rounded-md w-full"
+                      onclick="deleteMessage('${messageId}')">
+                Eliminar para mí
+              </button>
+              <button class="block text-sm text-red-600 hover:bg-red-100 px-2 py-1 rounded-md w-full"
+                      onclick="deleteMessageForAll('${messageId}')">
+                Eliminar para todos
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-`;
-  chatLog.appendChild(newMessage);
+    `;
+    chatLog.insertAdjacentHTML("beforeend", messageHTML);
+  } else {
+    // Mensaje del receptor
+    const messageHTML = `
+      <div id="message-${messageId}" class="flex mb-2">
+        <div class="rounded py-2 px-3 bg-[#F2F2F2] max-w-xs">
+          <p class="text-sm font-bold text-teal-700">
+            ${sender}
+          </p>
+          <p class="text-sm mt-1">
+            ${message}
+          </p>
+          <p class="text-right text-xs text-gray-500 mt-1">
+            ${timeString}
+          </p>
+        </div>
+      </div>
+    `;
+    chatLog.insertAdjacentHTML("beforeend", messageHTML);
+  }
+
   chatLog.scrollTop = chatLog.scrollHeight;
 }
 
-// Función para agregar archivos adjuntos al chat
 function appendFile(sender, fileUrl, isMyMessage, messageId) {
   const chatLog = document.querySelector("#chat-log");
-  const newMessage = document.createElement("li");
   const currentTime = new Date();
-  const hours = currentTime.getHours().toString().padStart(2, "0");
-  const minutes = currentTime.getMinutes().toString().padStart(2, "0");
-  const timeString = `${hours}:${minutes}`;
+  const timeString = currentTime.toLocaleTimeString("es-ES", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour24: true,
+  });
 
-  newMessage.id = `message-${messageId}`; // Asignar ID al mensaje para manipularlo
-  newMessage.classList.add("message-item");
-
-  // Detectar si el archivo es una imagen o un video
+  // Detectar tipo de archivo
   const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(fileUrl);
   const isVideo = /\.(mp4|avi|mov|mkv)$/i.test(fileUrl);
 
+  // Preparar el contenido del archivo según su tipo
   let fileContent;
   if (isImage) {
-    // Mostrar imagen como vista previa
     fileContent = `
-       <a href="${fileUrl}" target="_blank">
-        <img src="${fileUrl}" alt="Imagen adjunta" style="max-width: 100px; max-height: 100px; border-radius: 5px;" />
+      <a href="${fileUrl}" target="_blank" class="inline-block">
+        <img src="${fileUrl}" alt="Imagen adjunta" class="max-w-[100px] max-h-[100px] rounded-lg object-cover" />
       </a>
     `;
   } else if (isVideo) {
-    // Mostrar video como vista previa
     fileContent = `
-       <a href="${fileUrl}" target="_blank">
-        <video controls style="max-width: 200px; max-height: 150px; border-radius: 5px;">
+      <a href="${fileUrl}" target="_blank" class="inline-block">
+        <video controls class="max-w-[130px] max-h-[130px] rounded-lg">
           <source src="${fileUrl}" type="video/mp4">
           Tu navegador no soporta la etiqueta de video.
         </video>
       </a>
     `;
   } else {
-    // enlace de descarga para otros archivos
-    fileContent = `<a href="${fileUrl}" download target="_blank" class="file-link">Descargar</a>`;
+    fileContent = `
+      <a href="${fileUrl}" download target="_blank" 
+         class="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-100 rounded-lg hover:bg-blue-200">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/>
+        </svg>
+        Descargar archivo
+      </a>
+    `;
   }
 
-  newMessage.innerHTML = `
-         <div class="rounded py-2 px-3 ${
-           isMyMessage ? "bg-[#E2F7CB]" : "bg-[#F2F2F2]"
-         } max-w-xs">
-          ${
-            isMyMessage
-              ? ""
-              : `<p class="text-sm font-bold text-teal-700">${sender}</p>`
-          }
-          <div class="mt-1">${fileContent}</div>
-          <p class="text-right text-xs text-gray-500 mt-1">${timeString}</p>
-          ${
-            isMyMessage
-              ? `
-              <div class="message-options relative mt-1">
-                  <span class="options-icon text-gray-400 cursor-pointer text-sm" onclick="toggleMenu('${messageId}')">...</span>
-                  <div class="options-menu absolute right-0 bg-white shadow-md rounded-md p-2 hidden" id="menu-${messageId}">
-                      <button class="block text-sm text-gray-700 hover:bg-gray-200 px-2 py-1 rounded-md w-full" 
-                          onclick="deleteMessage('${messageId}')">Eliminar para mí</button>
-                      <button class="block text-sm text-red-600 hover:bg-red-100 px-2 py-1 rounded-md w-full"
-                          onclick="deleteMessageForAll('${messageId}')">Eliminar para todos</button>
-                  </div>
-              </div>
-          `
-              : ""
-          }
+  if (isMyMessage) {
+    // Mensaje del emisor
+    const messageHTML = `
+      <div id="message-${messageId}" class="flex justify-end mb-2">
+        <div class="rounded py-2 px-3 bg-[#E2F7CB] max-w-xs">
+          <div class="mt-1">
+            ${fileContent}
+          </div>
+          <p class="text-right text-xs text-gray-500 mt-1">
+            ${timeString}
+          </p>
+          <div class="message-options relative mt-1">
+            <span class="options-icon text-gray-400 cursor-pointer text-sm"
+                  onclick="toggleMenu('${messageId}')">
+              &#x2026;
+            </span>
+            <div class="options-menu absolute right-0 bg-white shadow-md rounded-md p-2 hidden"
+                 id="menu-${messageId}">
+              <button class="block text-sm text-gray-700 hover:bg-gray-200 px-2 py-1 rounded-md w-full"
+                      onclick="deleteMessage('${messageId}')">
+                Eliminar para mí
+              </button>
+              <button class="block text-sm text-red-600 hover:bg-red-100 px-2 py-1 rounded-md w-full"
+                      onclick="deleteMessageForAll('${messageId}')">
+                Eliminar para todos
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-  `;
+    `;
+    chatLog.insertAdjacentHTML("beforeend", messageHTML);
+  } else {
+    // Mensaje del receptor
+    const messageHTML = `
+      <div id="message-${messageId}" class="flex mb-2">
+        <div class="rounded py-2 px-3 bg-[#F2F2F2] max-w-xs">
+          <p class="text-sm font-bold text-teal-700">
+            ${sender}
+          </p>
+          <div class="mt-1">
+            ${fileContent}
+          </div>
+          <p class="text-right text-xs text-gray-500 mt-1">
+            ${timeString}
+          </p>
+        </div>
+      </div>
+    `;
+    chatLog.insertAdjacentHTML("beforeend", messageHTML);
+  }
 
-  chatLog.appendChild(newMessage);
   chatLog.scrollTop = chatLog.scrollHeight;
 }
 
@@ -415,12 +460,20 @@ function toggleChatMenu() {
   });
 }
 
-// Función para mostrar/ocultar el menú de opciones de un mensaje
+// Función para mostrar/ocultar el menú de opciones
 function toggleMenu(messageId) {
-  const menu = document.getElementById(`menu-${messageId}`);
-  if (menu) {
-    menu.classList.toggle("hidden"); // Alterna entre ocultar y mostrar
-  }
+  const menu = document.querySelector(`#menu-${messageId}`);
+  const allMenus = document.querySelectorAll(".options-menu");
+
+  // Cerrar todos los otros menús
+  allMenus.forEach((m) => {
+    if (m.id !== `menu-${messageId}`) {
+      m.classList.add("hidden");
+    }
+  });
+
+  // Toggle del menú actual
+  menu.classList.toggle("hidden");
 }
 
 // Función "eliminar para mi", tanto para chat individual y grupal
