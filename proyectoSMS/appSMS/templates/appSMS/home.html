@@ -4,9 +4,10 @@
 {% block title %}Inicio{% endblock %}
 
 {% block extra_css %}
-<script src="https://cdn.tailwindcss.com"></script>
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
   html {
     font-family: 'Inter', sans-serif;
   }
@@ -24,9 +25,9 @@
       Estamos comprometidos a brindarte una comunicación rápida, segura y fácil
       entre usuarios. ¡Únete a nosotros y experimenta una nueva forma de conectarte!
     </p>
-    <a href="{% url 'appSMS:login' %}" 
-       class="px-6 py-3 bg-blue-500 text-white rounded-lg text-lg font-medium hover:bg-blue-600 transition no-underline"
-       style="text-decoration: none;">
+    <a href="{% url 'appSMS:login' %}"
+      class="px-6 py-3 bg-blue-500 text-white rounded-lg text-lg font-medium hover:bg-blue-600 transition no-underline"
+      style="text-decoration: none;">
       Probar
     </a>
   </div>

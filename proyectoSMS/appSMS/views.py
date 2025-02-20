@@ -1,3 +1,4 @@
+import logging
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.contrib.auth import authenticate, login, get_user_model, logout
@@ -349,15 +350,35 @@ def delete_chat(request, room_name):
 
 
 # vaciado del chat grupal completo
+# @login_required
+# def delete_group_chat(request, group_name):
+#     if request.method == 'POST':
+#         group = get_object_or_404(GroupChat, name=group_name)
+#         messages = GroupMessage.objects.filter(group=group)
+#         for message in messages:
+#             message.deleted_by.add(request.user)
+#         return JsonResponse({'status': 'success'})
+#     return JsonResponse({'status': 'error'}, status=400)
+
+
+logger = logging.getLogger(__name__)
+
+
 @login_required
 def delete_group_chat(request, group_name):
     if request.method == 'POST':
-        group = get_object_or_404(GroupChat, name=group_name)
-        messages = GroupMessage.objects.filter(group=group)
-        for message in messages:
-            message.deleted_by.add(request.user)
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'error'}, status=400)
+        # 👈 Agregar esto
+        logger.info(f"Nombre del grupo recibido: {group_name}")
+        try:
+            group = get_object_or_404(GroupChat, name=group_name)
+            messages = GroupMessage.objects.filter(group=group)
+            for message in messages:
+                message.deleted_by.add(request.user)
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            logger.error(f"Error al eliminar chat: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 
 # elimina sms uno a uno en el chat individual

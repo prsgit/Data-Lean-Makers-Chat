@@ -1,27 +1,27 @@
 // Mostrar vista previa de la imagen elegida para el usuario
-function previewAvatar(input) {
-  const preview = document.getElementById("preview-avatar");
-  const file = input.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      preview.src = e.target.result;
-      preview.classList.remove("d-none"); // Mostrar la vista previa
-    };
-    reader.readAsDataURL(file);
-  }
-}
+// function previewAvatar(input) {
+//   const preview = document.getElementById("preview-avatar");
+//   const file = input.files[0];
+//   if (file) {
+//     const reader = new FileReader();
+//     reader.onload = function (e) {
+//       preview.src = e.target.result;
+//       preview.classList.remove("d-none"); // Mostrar la vista previa
+//     };
+//     reader.readAsDataURL(file);
+//   }
+// }
 
-// Mostrar vista previa de la imagen elegida para el grupo
-function previewAvatar(input) {
-  const file = input.files[0];
-  const preview = document.getElementById("current-avatar");
+// // Mostrar vista previa de la imagen elegida para el grupo
+// function previewAvatar(input) {
+//   const file = input.files[0];
+//   const preview = document.getElementById("current-avatar");
 
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      preview.src = e.target.result; // Mostrar vista previa
-    };
-    reader.readAsDataURL(file); // Leer archivo como URL
-  }
-}
+//   if (file) {
+//     const reader = new FileReader();
+//     reader.onload = function (e) {
+//       preview.src = e.target.result; // Mostrar vista previa
+//     };
+//     reader.readAsDataURL(file); // Leer archivo como URL
+//   }
+// }

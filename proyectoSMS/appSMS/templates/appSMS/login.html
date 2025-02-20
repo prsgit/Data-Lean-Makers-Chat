@@ -4,9 +4,10 @@
 {% block title %}Iniciar Sesión{% endblock %}
 
 {% block extra_css %}
-<script src="https://cdn.tailwindcss.com"></script>
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
   html {
     font-family: 'Inter', sans-serif;
   }
@@ -29,32 +30,21 @@
         {% csrf_token %}
         <div>
           <label for="username" class="block text-gray-700 font-medium mb-1">Usuario</label>
-          <input 
-            type="text" 
-            name="username" 
-            id="username" 
-            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
+          <input type="text" name="username" id="username"
+            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
         </div>
         <div>
           <label for="password" class="block text-gray-700 font-medium mb-1">Contraseña</label>
-          <input 
-            type="password" 
-            name="password" 
-            id="password" 
-            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
+          <input type="password" name="password" id="password"
+            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
         </div>
-        <button 
-          type="submit" 
+        <button type="submit"
           class="w-full py-2 bg-blue-500 text-white rounded-lg text-lg font-medium hover:bg-blue-600 transition">
           Acceder
         </button>
       </form>
       <p class="mt-4 text-gray-600 text-center">
-        ¿No tienes una cuenta? 
+        ¿No tienes una cuenta?
         <a href="{% url 'appSMS:registro' %}" class="text-blue-500 hover:underline">Regístrate aquí</a>.
       </p>
     </div>
