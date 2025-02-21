@@ -65,39 +65,39 @@ function appendMessage(sender, message, isMyMessage, messageId) {
     // Mensaje del emisor
     const messageHTML = `
      <div id="message-${messageId}" class="flex justify-end mb-2 items-center space-x-2">
-                <!-- Contenedor del mensaje -->
-                <div class="rounded-xl py-2 px-3 bg-indigo-200 max-w-xs">
-                    <p class="text-sm mt-1">${message}</p>
-                    <p class="text-right text-xs text-gray-500 mt-1">${timeString}</p>
-                </div>
+        <!-- Contenedor del mensaje -->
+        <div class="rounded-xl py-2 px-3 bg-indigo-200 max-w-xs">
+            <p class="text-sm mt-1">${message}</p>
+            <p class="text-right text-xs text-gray-500 mt-1">${timeString}</p>
+        </div>
 
-                <!-- Opciones de mensaje -->
-                <div class="message-options relative">
-                    <button onclick="toggleDropdown('dropdownDots-${messageId}', this)" 
-                        class="inline-flex items-center p-2 text-sm font-medium text-gray-500 bg-transparent rounded-full hover:opacity-80 focus:outline-none">
-                        <i class="fa-solid fa-ellipsis-vertical cursor-pointer text-lg text-gray-500 hover:text-gray-700"></i>
-                    </button>
+        <!-- Opciones de mensaje -->
+        <div class="message-options relative">
+            <button onclick="toggleDropdown('dropdownDots-${messageId}', this)" 
+                class="inline-flex items-center p-2 text-sm font-medium text-gray-500 bg-transparent rounded-full hover:opacity-80 focus:outline-none">
+                <i class="fa-solid fa-ellipsis-vertical cursor-pointer text-lg text-gray-500 hover:text-gray-700"></i>
+            </button>
 
-                    <!-- Menú desplegable -->
-                    <div id="dropdownDots-${messageId}" 
-                        class="z-50 hidden fixed bg-white divide-y divide-gray-100 rounded-lg shadow-md w-44 p-2">
-                        <ul class="py-2 text-sm text-gray-700">
-                            <li>
-                                <button onclick="deleteMessage('${messageId}')"
-                                    class="block px-4 py-2 w-full text-left hover:bg-gray-200 whitespace-nowrap">
-                                    Eliminar para mí
-                                </button>
-                            </li>
-                            <li>
-                                <button onclick="deleteMessageForAll('${messageId}')"
-                                    class="block px-4 py-2 w-full text-left hover:bg-gray-200 whitespace-nowrap">
-                                    Eliminar para todos
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+            <!-- Menú desplegable -->
+            <div id="dropdownDots-${messageId}" 
+                class="z-50 hidden fixed bg-white divide-y divide-gray-100 rounded-lg shadow-md w-44 p-2">
+                <ul class="py-2 text-sm text-gray-700">
+                    <li>
+                        <button onclick="openMessageDeleteModal('${messageId}', 'forMe')"
+                            class="block px-4 py-2 w-full text-left hover:bg-gray-200 whitespace-nowrap">
+                            Eliminar para mí
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="openMessageDeleteModal('${messageId}', 'forAll')"
+                            class="block px-4 py-2 w-full text-left hover:bg-gray-200 whitespace-nowrap">
+                            Eliminar para todos
+                        </button>
+                    </li>
+                </ul>
             </div>
+        </div>
+    </div>
     `;
     chatLog.insertAdjacentHTML("beforeend", messageHTML);
   } else {
@@ -142,7 +142,7 @@ function appendFile(sender, fileUrl, isMyMessage, messageId) {
   if (isImage) {
     fileContent = `
       <a href="${fileUrl}" target="_blank" class="inline-block">
-        <img src="${fileUrl}" alt="Imagen adjunta" class="max-w-[100px] max-h-[100px] rounded-lg object-cover" />
+        <img src="${fileUrl}" alt="Imagen adjunta" class="max-w-[50px] max-h-[50px] rounded-lg object-cover" />
       </a>
     `;
   } else if (isVideo) {
@@ -171,7 +171,7 @@ function appendFile(sender, fileUrl, isMyMessage, messageId) {
     const messageHTML = `
       <div id="message-${messageId}" class="flex justify-end mb-2 items-center space-x-2">
                 <!-- Contenedor del mensaje -->
-                <div class="rounded py-2 px-3 bg-[#E2F7CB] max-w-xs">
+                <div class="rounded py-2 px-3 bg-indigo-200 max-w-xs">
                     <div class="mt-1">${fileContent}</div>
                     <p class="text-right text-xs text-gray-500 mt-1">${timeString}</p>
                 </div>
@@ -188,13 +188,13 @@ function appendFile(sender, fileUrl, isMyMessage, messageId) {
                         class="z-50 hidden fixed bg-white divide-y divide-gray-100 rounded-lg shadow-md w-44 p-2">
                         <ul class="py-2 text-sm text-gray-700">
                             <li>
-                                <button onclick="deleteMessage('${messageId}')"
+                                <button onclick="openMessageDeleteModal('${messageId}', 'forMe')"
                                     class="block px-4 py-2 w-full text-left hover:bg-gray-100 whitespace-nowrap">
                                     Eliminar para mí
                                 </button>
                             </li>
                             <li>
-                                <button onclick="deleteMessageForAll('${messageId}')"
+                                <button onclick="openMessageDeleteModal('${messageId}', 'forAll')"
                                     class="block px-4 py-2 w-full text-left hover:bg-gray-100 whitespace-nowrap">
                                     Eliminar para todos
                                 </button>
@@ -391,32 +391,6 @@ document.addEventListener("DOMContentLoaded", function () {
     searchInput.addEventListener("input", filterItems);
   }
 });
-
-// Función para vaciar el chat grupal completo(antigua)
-// document.addEventListener("DOMContentLoaded", function () {
-//   const deleteGroupChatButton = document.getElementById("delete-group-chat");
-
-//   if (deleteGroupChatButton) {
-//     deleteGroupChatButton.onclick = function () {
-//       fetch(`/delete_group_chat/${groupName}/`, {
-//         method: "POST",
-//         headers: {
-//           "X-CSRFToken": getCookie("csrftoken"),
-//         },
-//       })
-//         .then((response) => response.json())
-//         .then((data) => {
-//           if (data.status === "success") {
-//             // Limpiar el historial de chat en la interfaz
-//             const chatLog = document.getElementById("chat-log");
-//             chatLog.innerHTML = "";
-//           } else {
-//             console.error("Error al vaciar el chat grupal");
-//           }
-//         });
-//     };
-//   }
-// });
 
 // Función para mostrar/ocultar el menú "Vaciar Chat"
 function toggleChatMenu(event) {
@@ -618,67 +592,6 @@ function toggleMenuOptions(event) {
   });
 }
 
-// Función "eliminar para mi", tanto para chat individual y grupal
-function deleteMessage(messageId) {
-  const messageElement = document.getElementById(`message-${messageId}`);
-  if (messageElement) {
-    // Determinar la URL según el tipo de chat
-    const deleteUrl = isGroupChat
-      ? `/delete_group_message/${messageId}/` // Ruta para mensajes grupales
-      : `/delete_private_message/${messageId}/`; // Ruta para mensajes privados
-
-    // Llamada al servidor para eliminar el mensaje
-    fetch(deleteUrl, {
-      method: "POST",
-      headers: {
-        "X-CSRFToken": getCookie("csrftoken"),
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.status === "success") {
-          // Elimina el mensaje del DOM si la operación fue exitosa
-          messageElement.remove();
-        } else {
-          console.error("Error al eliminar el mensaje");
-        }
-      })
-      .catch((error) => console.error("Error en la solicitud:", error));
-  }
-}
-
-// Función "eliminar para todos"
-function deleteMessageForAll(messageId) {
-  const messageElement = document.getElementById(`message-${messageId}`);
-  if (messageElement) {
-    // Determinar la URL según el tipo de chat
-    const deleteUrl = isGroupChat
-      ? `/delete_group_message_for_all/${messageId}/` // Ruta para eliminar mensajes grupales
-      : `/delete_private_message_for_all/${messageId}/`; // Ruta para eliminar mensajes privados
-
-    // Llamada al servidor para eliminar el mensaje para todos
-    fetch(deleteUrl, {
-      method: "POST",
-      headers: {
-        "X-CSRFToken": getCookie("csrftoken"),
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.status === "success") {
-          // Elimina el mensaje del DOM si la operación fue exitosa
-          messageElement.remove();
-          if (data.file_url) {
-            console.log(`Archivo eliminado de la vista: ${data.file_url}`);
-          }
-        } else {
-          console.error("Error al eliminar el mensaje para todos");
-        }
-      })
-      .catch((error) => console.error("Error en la solicitud:", error));
-  }
-}
-
 // Funcion para el desplegable de eliminar sms para mi/para todos
 function toggleDropdown(menuId, button) {
   let dropdown = document.getElementById(menuId);
@@ -731,3 +644,149 @@ document.addEventListener("click", function (event) {
     });
   }
 });
+
+//Función eliminar sms para mi/eliminar sms para todos uno a uno
+// Variables globales
+let currentMessageId = null;
+let deleteType = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+  const messageModal = document.getElementById("message-delete-modal");
+  const messageModalTitle = document.getElementById("message-modal-title");
+  const messageModalText = document.getElementById("message-modal-text");
+  const messageCloseModalBtn = document.getElementById("message-close-modal");
+  const messageConfirmDeleteBtn = document.getElementById(
+    "message-confirm-delete"
+  );
+
+  //  Comprueba que el modal está listo para usar
+  if (!messageModal || !messageConfirmDeleteBtn || !messageCloseModalBtn) {
+    console.error("Error: No se encontraron los elementos del modal.");
+    return;
+  }
+
+  //  Abre el modal
+  window.openMessageDeleteModal = function (messageId, type) {
+    console.log(
+      "Abriendo modal de eliminación de mensaje para:",
+      messageId,
+      type
+    );
+
+    currentMessageId = messageId; // Guarda el ID del mensaje
+    deleteType = type; // Guarda si es "Eliminar para mí" o "Eliminar para todos"
+
+    //  Verifica si el modal existe antes de manipular
+    if (!messageModal) {
+      console.error("Error: El modal no está en el DOM.");
+      return;
+    }
+
+    // Mensaje dependiendo de si es para mi o para todos
+    if (type === "forMe") {
+      messageModalTitle.textContent = "¿Desea eliminar este mensaje para ti?";
+      messageModalText.textContent = "Este mensaje se eliminará solo para ti";
+    } else if (type === "forAll") {
+      messageModalTitle.textContent =
+        "¿Desea eliminar este mensaje para todos?";
+      messageModalText.textContent = "Este mensaje se eliminará para todos";
+    }
+
+    // Mostrar el modal eliminando la clase "hidden"
+    messageModal.classList.remove("hidden");
+
+    console.log("Modal mostrado correctamente.");
+  };
+
+  // Evento para confirmar eliminación (solo se ejecuta al hacer clic en "Eliminar")
+  messageConfirmDeleteBtn.addEventListener("click", function () {
+    if (!currentMessageId) {
+      console.error("Error: No hay mensaje seleccionado para eliminar.");
+      return;
+    }
+
+    console.log(
+      "Confirmando eliminación del mensaje:",
+      currentMessageId,
+      deleteType
+    );
+
+    if (deleteType === "forMe") {
+      window.deleteMessage(currentMessageId);
+    } else if (deleteType === "forAll") {
+      window.deleteMessageForAll(currentMessageId);
+    }
+
+    // Ocultar el modal después de la eliminación
+    messageModal.classList.add("hidden");
+    currentMessageId = null;
+    deleteType = null;
+  });
+
+  // Evento para cerrar el modal al hacer clic en "Cancelar"
+  messageCloseModalBtn.addEventListener("click", function () {
+    console.log("Cancelando eliminación del mensaje");
+    messageModal.classList.add("hidden");
+
+    // Reiniciar variables globales
+    currentMessageId = null;
+    deleteType = null;
+  });
+});
+
+// Funciones globales para eliminar de eliminar para mi/eliminar para todos sms uno a uno (al final del archivo, fuera del DOMContentLoaded)
+window.deleteMessage = function (messageId) {
+  console.log("Ejecutando deleteMessage para:", messageId);
+
+  const messageElement = document.getElementById(`message-${messageId}`);
+  if (messageElement) {
+    const deleteUrl = isGroupChat
+      ? `/delete_group_message/${messageId}/`
+      : `/delete_private_message/${messageId}/`;
+
+    fetch(deleteUrl, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success") {
+          messageElement.remove();
+          console.log("Mensaje eliminado para mi.");
+        } else {
+          console.error("Error al eliminar el mensaje.");
+        }
+      })
+      .catch((error) => console.error("Error en la solicitud:", error));
+  }
+};
+
+window.deleteMessageForAll = function (messageId) {
+  console.log("Ejecutando deleteMessageForAll para:", messageId);
+
+  const messageElement = document.getElementById(`message-${messageId}`);
+  if (messageElement) {
+    const deleteUrl = isGroupChat
+      ? `/delete_group_message_for_all/${messageId}/`
+      : `/delete_private_message_for_all/${messageId}/`;
+
+    fetch(deleteUrl, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success") {
+          messageElement.remove();
+          console.log("Mensaje eliminado para todos.");
+        } else {
+          console.error("Error al eliminar el mensaje para todos.");
+        }
+      })
+      .catch((error) => console.error("Error en la solicitud:", error));
+  }
+};
