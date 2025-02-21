@@ -685,11 +685,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // Mensaje dependiendo de si es para mi o para todos
     if (type === "forMe") {
       messageModalTitle.textContent = "¿Desea eliminar este mensaje para ti?";
-      messageModalText.textContent = "Este mensaje se eliminará solo para ti";
+      messageModalText.textContent = "Esta acción no podrá deshacerse";
     } else if (type === "forAll") {
       messageModalTitle.textContent =
         "¿Desea eliminar este mensaje para todos?";
-      messageModalText.textContent = "Este mensaje se eliminará para todos";
+      messageModalText.textContent = "Esta acción no podrá deshacerse";
     }
 
     // Mostrar el modal eliminando la clase "hidden"
