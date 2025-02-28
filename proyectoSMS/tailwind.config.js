@@ -5,7 +5,11 @@ module.exports = {
     "./appSMS/static/js/**/*.js",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ["Inter", "ui-sans-serif", "system-ui"],
+      },
+    },
   },
   plugins: [],
 };

@@ -3,17 +3,6 @@
 
 <title>{% block title %}Actualizar perfil de grupo{% endblock %}</title>
 
-{% block extra_css %}
-
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-
-  html {
-    font-family: 'Inter', sans-serif;
-  }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="h-screen flex justify-center items-center bg-cover bg-center relative px-4"
   style="background-image: url('/static/img/home.jpg')">
@@ -56,7 +45,7 @@
       <!-- Botón de actualizar -->
       <div class="flex justify-center items-center">
         <button type="submit"
-          class="px-3 py-2 bg-[#3B82F6] text-white rounded-lg shadow hover:bg-[#2563EB] transition focus:outline-none focus:ring-2 focus:ring-[#93C5FD] w-auto text-center">
+          class="px-3 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-300 w-auto text-center">
           Actualizar
         </button>
       </div>
