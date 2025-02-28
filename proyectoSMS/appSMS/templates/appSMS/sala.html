@@ -17,7 +17,7 @@
       <div class="flex border border-grey rounded shadow-lg h-full">
 
         <!-- Left -->
-        <div class="w-full md:w-1/3 border flex flex-col">
+        <div id="contacts-block" class="w-full md:w-1/3 border flex flex-col">
 
           <!-- Header -->
           <div class="py-2 px-3 bg-grey-lighter flex flex-row justify-between items-center">
@@ -121,13 +121,16 @@
 
 
         <!-- Chat -->
-        <div class="hidden md:flex w-full md:w-2/3 border flex-col">
+        <div id="chat-block" class="hidden md:flex w-full md:w-2/3 border flex-col">
 
           <!-- Cabecera info. chat -->
           <div class="py-2 px-3 bg-grey-lighter flex flex-row justify-between items-center">
             <div class="flex items-center">
               {% if selected_group %}
               <!-- Mostrar nombre del grupo -->
+              <button id="back-to-contacts" class="mr-2 md:hidden text-gray-700 hover:text-gray-900">
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
               <a href="{% url 'appSMS:update_group_avatar' group_id=selected_group.id %}">
                 <img class="w-10 h-10 rounded-full" src="{{ selected_group.avatar.url }}" alt="group-avatar"
                   title="Cambiar imagen" style="cursor: pointer"
@@ -143,6 +146,9 @@
 
               {% elif other_user %}
               <!-- Mostrar nombre del usuario en chat individual -->
+              <button id="back-to-contacts" class="mr-2 md:hidden text-gray-700 hover:text-gray-900">
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
               <img class="w-10 h-10 rounded-full" src="{{ other_user.userprofile.avatar.url }}" alt="avatar"
                 onerror="this.onerror=null; this.src='{{ MEDIA_URL }}avatars/default.png';" />
               <div class="ml-2">
@@ -255,9 +261,9 @@
                   <!-- Opciones de mensaje -->
                   <div class="message-options relative ml-1">
                     <button onclick="toggleDropdown('dropdownDots-{{ message.id }}', this)"
-                      class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-transparent rounded-full hover:opacity-80 focus:outline-none">
+                      class="inline-flex items-center p-1 text-sm font-medium bg-transparent rounded-full hover:opacity-80 focus:outline-none">
                       <i
-                        class="fa-solid fa-ellipsis-vertical cursor-pointer text-lg text-gray-500 hover:text-gray-700"></i>
+                        class="fa-solid fa-ellipsis-vertical cursor-pointer text-lg text-gray-400 hover:text-gray-700"></i>
                     </button>
 
                     <!-- Menú desplegable -->

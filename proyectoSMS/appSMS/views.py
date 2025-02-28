@@ -143,6 +143,8 @@ def update_group_avatar(request, group_id):
     # Renderizar la página de actualización para solicitudes GET o en caso de error
     return render(request, 'appSMS/update_profile_group.html', {'group': group})
 
+# Chat entre dos usuarios
+
 
 @login_required
 def chat_privado(request, username=None):
@@ -281,6 +283,8 @@ def create_group(request):
             id=request.user.id).exclude(username='admin')
         return render(request, 'appSMS/create_group.html', {'users': users})
 
+# Chat para grupos
+
 
 @login_required
 def group_chat(request, group_name):
@@ -350,24 +354,12 @@ def delete_chat(request, room_name):
 
 
 # vaciado del chat grupal completo
-# @login_required
-# def delete_group_chat(request, group_name):
-#     if request.method == 'POST':
-#         group = get_object_or_404(GroupChat, name=group_name)
-#         messages = GroupMessage.objects.filter(group=group)
-#         for message in messages:
-#             message.deleted_by.add(request.user)
-#         return JsonResponse({'status': 'success'})
-#     return JsonResponse({'status': 'error'}, status=400)
-
-
 logger = logging.getLogger(__name__)
 
 
 @login_required
 def delete_group_chat(request, group_name):
     if request.method == 'POST':
-        # 👈 Agregar esto
         logger.info(f"Nombre del grupo recibido: {group_name}")
         try:
             group = get_object_or_404(GroupChat, name=group_name)

@@ -72,10 +72,10 @@ function appendMessage(sender, message, isMyMessage, messageId) {
         </div>
 
         <!-- Opciones de mensaje -->
-        <div class="message-options relative">
+        <div class="message-options relative ml-1">
             <button onclick="toggleDropdown('dropdownDots-${messageId}', this)" 
-                class="inline-flex items-center p-2 text-sm font-medium text-gray-500 bg-transparent rounded-full hover:opacity-80 focus:outline-none">
-                <i class="fa-solid fa-ellipsis-vertical cursor-pointer text-lg text-gray-500 hover:text-gray-700"></i>
+                class="inline-flex items-center p-1 text-sm font-medium bg-transparent rounded-full hover:opacity-80 focus:outline-none">
+                <i class="fa-solid fa-ellipsis-vertical cursor-pointer text-lg text-gray-400 hover:text-gray-700"></i>
             </button>
 
             <!-- Menú desplegable -->
@@ -790,3 +790,81 @@ window.deleteMessageForAll = function (messageId) {
       .catch((error) => console.error("Error en la solicitud:", error));
   }
 };
+
+// Función solo para mobile, se ve la listade usuarios y al elegir uno cambia al chat y viceversa.
+document.addEventListener("DOMContentLoaded", function () {
+  // Obtener los bloques
+  const contactsBlock = document.getElementById("contacts-block");
+  const chatBlock = document.getElementById("chat-block");
+
+  // Función para ajustar la vista basada en el ancho de la ventana
+  function adjustViewBasedOnWidth() {
+    if (window.innerWidth >= 768) {
+      // En pantallas medianas o grandes, siempre mostrar ambos bloques con sus clases originales
+      contactsBlock.classList.remove("hidden");
+      chatBlock.classList.remove("hidden");
+      chatBlock.classList.add("md:flex");
+
+      // Asegurar que la vista no esté afectada por el estado anterior
+      if (!chatBlock.classList.contains("md:w-2/3")) {
+        chatBlock.classList.add("md:w-2/3");
+      }
+      if (!contactsBlock.classList.contains("md:w-1/3")) {
+        contactsBlock.classList.add("md:w-1/3");
+      }
+    } else {
+      // En móvil, verifica si hay un chat activo
+      const isUserOrGroupSelected = document.querySelector(".active") !== null;
+      const isChatViewActive =
+        localStorage.getItem("chatViewActive") === "true";
+
+      if (isUserOrGroupSelected && isChatViewActive) {
+        // Mostrar solo el chat
+        contactsBlock.classList.add("hidden");
+        chatBlock.classList.remove("hidden");
+        chatBlock.classList.add("flex");
+      } else {
+        // Mostrar solo la lista de contactos
+        contactsBlock.classList.remove("hidden");
+        chatBlock.classList.add("hidden");
+        localStorage.removeItem("chatViewActive");
+      }
+    }
+  }
+
+  // Ajustar la vista cuando se carga la página
+  adjustViewBasedOnWidth();
+
+  // Ajusta la vista cuando cambia el tamaño de la ventana
+  window.addEventListener("resize", adjustViewBasedOnWidth);
+
+  // Obtener todos los enlaces de usuario y grupo existentes
+  const userLinks = document.querySelectorAll("#user-list a, #group-list a");
+
+  // Agregar evento de clic a cada enlace
+  userLinks.forEach((link) => {
+    link.addEventListener("click", function () {
+      // Solo aplicar en móviles
+      if (window.innerWidth < 768) {
+        // Guardar estado en localStorage
+        localStorage.setItem("chatViewActive", "true");
+      }
+    });
+  });
+
+  // Manejar el evento de clic en el botón de regreso
+  const backButton = document.getElementById("back-to-contacts");
+  if (backButton) {
+    backButton.addEventListener("click", function () {
+      // Solo aplicar en móviles
+      if (window.innerWidth < 768) {
+        // Mostrar bloque de contactos y ocultar bloque de chat
+        contactsBlock.classList.remove("hidden");
+        chatBlock.classList.add("hidden");
+
+        // Limpiar localStorage
+        localStorage.removeItem("chatViewActive");
+      }
+    });
+  }
+});
