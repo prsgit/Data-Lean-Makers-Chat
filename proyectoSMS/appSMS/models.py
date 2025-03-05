@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils.text import slugify
 
 
 User = get_user_model()
@@ -8,10 +9,19 @@ User = get_user_model()
 
 class GroupChat(models.Model):
     name = models.CharField(max_length=255, unique=True)  # Nombre del grupo
+    creator = models.ForeignKey(  # el creador
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_groups"
+    )
     members = models.ManyToManyField(
-        User, related_name="group_chats")  # Miembros del grupo
-    avatar = models.ImageField(upload_to='group_avatars/', default='group_avatars/default_group.png')
+        User, related_name="group_chats")
+    avatar = models.ImageField(
+        upload_to='group_avatars/', default='group_avatars/default_group.png')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        # Convierte el nombre en slug antes de guardarlo
+        self.name = slugify(self.name)
+        super(GroupChat, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -27,6 +37,7 @@ class GroupMessage(models.Model):
     deleted_by = models.ManyToManyField(
         User, related_name='deleted_group_messages', blank=True)
     deleted_for_all = models.BooleanField(default=False)
+    deleted_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.sender} to {self.group.name}: {self.content[:50]}'
@@ -44,6 +55,10 @@ class Message(models.Model):
     sender_deleted = models.BooleanField(default=False)
     receiver_deleted = models.BooleanField(default=False)
     deleted_for_all = models.BooleanField(default=False)
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='deleted_messages'
+    )
+    deleted_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.sender} to {self.receiver}: {self.content}'

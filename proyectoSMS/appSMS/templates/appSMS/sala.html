@@ -76,8 +76,10 @@
                       <img src="{{ group.avatar.url }}" class="h-12 w-12 rounded-full" alt="group-avatar"
                         onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';" />
                       <div class="about w-full">
-                        <div class="name border-b border-grey-lighter pb-2 w-full">{{ group.name }}</div>
+                        <div class="name border-b border-grey-lighter pb-2 w-full">
+                          {{group.display_name|default:group.name }}</div>
                       </div>
+
                     </a>
                   </li>
                   {% empty %}
@@ -137,7 +139,7 @@
                   onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';" />
               </a>
               <div class="ml-2">
-                <p class="text-grey-darkest">{{ selected_group.name }}</p>
+                <p class="text-grey-darkest">{{ group_display_name }}</p>
 
                 <!-- <p class="text-grey-darker text-xs mt-1">
                                     para mostrar los usuarios del grupo(futuro)

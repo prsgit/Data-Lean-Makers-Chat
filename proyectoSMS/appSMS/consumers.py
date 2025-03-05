@@ -1,5 +1,6 @@
 import json
 import os
+import re  # Importamos re para limpieza de texto
 import base64
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth import get_user_model
@@ -24,7 +25,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         try:
             self.group = await database_sync_to_async(GroupChat.objects.get)(name=self.room_name)
-            self.room_group_name = f"group_chat_{self.room_name}"
+            self.room_group_name = f"group_chat_{re.sub(r'[^a-zA-Z0-9._-]', '_', self.room_name)}"
             print(f"Conectado al chat grupal: {self.group.name}")
         except GroupChat.DoesNotExist:
             self.room_group_name = f"chat_{self.room_name}"

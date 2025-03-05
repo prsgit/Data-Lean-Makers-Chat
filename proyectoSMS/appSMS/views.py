@@ -12,9 +12,13 @@ from django.http import JsonResponse
 from .models import Message, GroupChat, GroupMessage, PushSubscription, UserProfile
 from appSMS.utils import send_push_notification
 from PIL import Image
-from django.conf import settings
-import os
+from django.utils.text import slugify
+# from django.conf import settings
+from django.utils.timezone import now
+# import os
+import re
 import json
+
 
 User = get_user_model()
 
@@ -116,7 +120,7 @@ def update_group_avatar(request, group_id):
         group = GroupChat.objects.get(id=group_id)
     except GroupChat.DoesNotExist:
         messages.error(request, "El grupo no existe.")
-        return redirect('appSMS:chat_grupal', group_name=group.name)
+        return redirect('appSMS:chat_grupal', group_name=slugify(group.name))
 
     if request.method == 'POST':
         avatar = request.FILES.get('avatar')  # Captura el archivo subido
@@ -130,7 +134,7 @@ def update_group_avatar(request, group_id):
                 group.avatar = avatar
                 group.save()
 
-                return redirect('appSMS:chat_grupal', group_name=group.name)
+                return redirect('appSMS:chat_grupal', group_name=slugify(group.name))
             except (IOError, SyntaxError):
                 # Maneja el caso en que el archivo no sea una imagen válida
                 messages.error(
@@ -143,13 +147,16 @@ def update_group_avatar(request, group_id):
     # Renderizar la página de actualización para solicitudes GET o en caso de error
     return render(request, 'appSMS/update_profile_group.html', {'group': group})
 
+
 # Chat entre dos usuarios
-
-
 @login_required
 def chat_privado(request, username=None):
     users = User.objects.exclude(username='admin')
     groups = GroupChat.objects.filter(members=request.user)
+
+    # Convertir nombres de grupos a formato correcto
+    for g in groups:
+        g.display_name = g.name.replace('-', ' ').title()
 
     if username:
         try:
@@ -222,13 +229,13 @@ def logout_view(request):
     return redirect('appSMS:home')
 
 
-@login_required
-def group_list(request):
-    # Filtrar los grupos en los que el usuario es miembro
-    groups = GroupChat.objects.filter(members=request.user)
+# @login_required
+# def group_list(request):
+#     # Filtrar los grupos en los que el usuario es miembro
+#     groups = GroupChat.objects.filter(members=request.user)
 
-    # Renderizar la plantilla con la lista de grupos
-    return render(request, 'appSMS/group_list.html', {'groups': groups})
+#     # Renderizar la plantilla con la lista de grupos
+#     return render(request, 'appSMS/group_list.html', {'groups': groups})
 
 
 @login_required
@@ -265,6 +272,7 @@ def create_group(request):
         # Crea el grupo
         group = GroupChat(
             name=group_name,
+            creator=request.user,
             avatar=avatar if avatar else "group_avatars/default_group.png"  # imagen por defecto
         )
         group.save()  # Guarda el grupo en la base de datos
@@ -275,7 +283,7 @@ def create_group(request):
         group.members.add(*User.objects.filter(id__in=members))
 
         # Redirige al chat grupal
-        return redirect('appSMS:chat_grupal', group_name=group.name)
+        return redirect('appSMS:chat_grupal', group_name=slugify(group.name))
 
     else:  # Si no es POST, asumimos que es GET
         # Usuarios disponibles para agregar al grupo (excluyendo al creador y al admin)
@@ -283,18 +291,23 @@ def create_group(request):
             id=request.user.id).exclude(username='admin')
         return render(request, 'appSMS/create_group.html', {'users': users})
 
+
 # Chat para grupos
-
-
 @login_required
 def group_chat(request, group_name):
-    group = get_object_or_404(GroupChat, name=group_name)
 
-    if request.user not in group.members.all():
-        return redirect('appSMS:group_list')
+    group = get_object_or_404(GroupChat, name=slugify(group_name))
+    group_display_name = group.name.replace('-', ' ').title()
+
+    # if request.user not in group.members.all():
+    #     return redirect('appSMS:group_list')
 
     users = User.objects.exclude(username='admin')
     groups = GroupChat.objects.filter(members=request.user)
+
+    for g in groups:
+        g.display_name = g.name.replace('-', ' ').title()
+
     messages = GroupMessage.objects.filter(
         group=group
     ).exclude(
@@ -328,7 +341,8 @@ def group_chat(request, group_name):
                 send_push_notification(member, payload)
 
             # Usar response para evitar múltiples llamadas
-            response = redirect('appSMS:chat_grupal', group_name=group.name)
+            response = redirect('appSMS:chat_grupal',
+                                group_name=slugify(group.name))
             return response
 
     return render(request, 'appSMS/sala.html', {
@@ -337,6 +351,7 @@ def group_chat(request, group_name):
         'room_name': f'group_chat_{group.id}',
         'groups': groups,
         'selected_group': group,
+        'group_display_name': group_display_name
     })
 
 
@@ -362,7 +377,8 @@ def delete_group_chat(request, group_name):
     if request.method == 'POST':
         logger.info(f"Nombre del grupo recibido: {group_name}")
         try:
-            group = get_object_or_404(GroupChat, name=group_name)
+            group = get_object_or_404(
+                GroupChat, name=group_name.replace('-', ' '))
             messages = GroupMessage.objects.filter(group=group)
             for message in messages:
                 message.deleted_by.add(request.user)
@@ -385,7 +401,12 @@ def delete_private_message(request, message_id):
                 message.receiver_deleted = True
             else:
                 return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
+
+            message.deleted_by = request.user
+            message.deleted_date = now()
+
             message.save()
+
             return JsonResponse({'status': 'success'})
         except Message.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Mensaje no encontrado'}, status=404)
@@ -405,6 +426,8 @@ def delete_group_message(request, message_id):
 
                 # Marcar el mensaje como eliminado para el usuario actual
                 message.deleted_by.add(request.user)
+                message.deleted_date = now()
+
                 message.save()
 
                 return JsonResponse({'status': 'success'})
@@ -447,8 +470,10 @@ def delete_private_message_for_all(request, message_id):
             if message.sender != request.user:
                 return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
 
-            # Marcar el mensaje como eliminado para todos
-            message.deleted_for_all = True
+            message.deleted_for_all = True  # Marcar el mensaje como eliminado para todos
+            message.deleted_by = request.user
+            message.deleted_date = now()
+
             message.save()
 
             # Emitir evento al WebSocket
@@ -481,12 +506,15 @@ def delete_group_message_for_all(request, message_id):
 
             # Marcar el mensaje como eliminado para todos
             message.deleted_for_all = True
+            message.deleted_by.add(request.user)
+            message.deleted_date = now()
+
             message.save()
 
             # Emitir evento al WebSocket
             channel_layer = get_channel_layer()
             # Nombre del grupo de WebSocket
-            group_name = f"group_chat_{message.group.name}"
+            group_name = f"group_chat_{re.sub(r'[^a-zA-Z0-9._-]', '_', message.group.name)}"
             async_to_sync(channel_layer.group_send)(
                 group_name,
                 {
