@@ -197,15 +197,6 @@ def chat_privado(request, username=None):
                 )
                 response = redirect('appSMS:chat_privado', username=username)
 
-                payload = {
-                    "title": f"Nuevo mensaje de {request.user.username}",
-                    "body": content if content else "Has recibido un archivo.",
-                    "icon": "/static/img/icon192.png",
-                    "url": f"/chat/{request.user.username}/",
-                    "group": False
-                }
-                send_push_notification(other_user, payload)
-
                 return response
 
     else:
@@ -227,15 +218,6 @@ def chat_privado(request, username=None):
 def logout_view(request):
     logout(request)
     return redirect('appSMS:home')
-
-
-# @login_required
-# def group_list(request):
-#     # Filtrar los grupos en los que el usuario es miembro
-#     groups = GroupChat.objects.filter(members=request.user)
-
-#     # Renderizar la plantilla con la lista de grupos
-#     return render(request, 'appSMS/group_list.html', {'groups': groups})
 
 
 # @login_required
@@ -354,9 +336,6 @@ def group_chat(request, group_name):
     group = get_object_or_404(GroupChat, name=slugify(group_name))
     group_display_name = group.name.replace('-', ' ').title()
 
-    # if request.user not in group.members.all():
-    #     return redirect('appSMS:group_list')
-
     users = User.objects.exclude(username='admin')
     groups = GroupChat.objects.filter(members=request.user)
 
@@ -381,20 +360,6 @@ def group_chat(request, group_name):
                 content=content,
                 file=file
             )
-
-            # Crear el payload para la notificación
-            payload = {
-                "title": f"Nuevo mensaje en {group.name}",
-                "body": content if content else "Has recibido un archivo.",
-                "icon": "/static/img/icon192.png",
-                "url": f"/group/{group_name}/",
-                "group": True
-            }
-
-            # Enviar notificaciones push a todos los miembros del grupo excepto al remitente
-            for member in group.members.exclude(id=request.user.id):
-                send_push_notification(member, payload)
-
             # Usar response para evitar múltiples llamadas
             response = redirect('appSMS:chat_grupal',
                                 group_name=slugify(group.name))
