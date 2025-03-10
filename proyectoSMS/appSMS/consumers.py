@@ -98,7 +98,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             members = await database_sync_to_async(list)(self.group.members.exclude(id=sender.id))
             for member in members:
                 payload = {
-                    "title": f"Mensaje de {sender.username} en el grupo {self.group.name}",
+                    "title": f"Mensaje de {sender.username} en {self.group.name.replace('-', ' ').title()}",
                     "body": message if message else "Has recibido un archivo.",
                     "icon": "/static/img/icon192.png",
                     "url": f"/chat/{self.group.name}/"

@@ -142,7 +142,7 @@ function appendFile(sender, fileUrl, isMyMessage, messageId) {
   if (isImage) {
     fileContent = `
       <a href="${fileUrl}" target="_blank" class="inline-block">
-        <img src="${fileUrl}" alt="Imagen adjunta" class="max-w-[50px] max-h-[50px] rounded-lg object-cover" />
+        <img src="${fileUrl}" alt="Imagen adjunta" class="max-w-[30px] max-h-[30px] rounded-lg object-cover" />
       </a>
     `;
   } else if (isVideo) {

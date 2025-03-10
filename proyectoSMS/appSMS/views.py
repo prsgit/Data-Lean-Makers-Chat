@@ -238,12 +238,66 @@ def logout_view(request):
 #     return render(request, 'appSMS/group_list.html', {'groups': groups})
 
 
+# @login_required
+# def create_group(request):
+#     if request.method == "POST":
+
+#         # Captura el nombre del grupo
+#         group_name = request.POST.get("group_name")
+#         # Captura los IDs de los miembros seleccionados
+#         members = request.POST.getlist("members")
+#         # Captura el archivo del avatar subido
+#         avatar = request.FILES.get("avatar")
+
+#         # Valida si se seleccionaron miembros
+#         if not members:
+#             messages.error(request, "Debes elegir al menos un miembro")
+#             return redirect('appSMS:crear_grupo')
+
+#         # Valida si el grupo ya existe
+#         if GroupChat.objects.filter(name=group_name).exists():
+#             messages.error(request, "El grupo ya existe.")
+#             return redirect('appSMS:crear_grupo')
+
+#          # Valida si el archivo subido es una imagen válida
+#         if avatar:
+#             try:
+#                 img = Image.open(avatar)
+#                 img.verify()  # Verifica si el archivo es una imagen válida
+#             except (IOError, SyntaxError):
+#                 messages.error(
+#                     request, 'Por favor, sube un archivo de imagen válido.')
+#                 return redirect('appSMS:crear_grupo')
+
+#         # Crea el grupo
+#         group = GroupChat(
+#             name=group_name,
+#             creator=request.user,
+#             avatar=avatar if avatar else "group_avatars/default_group.png"  # imagen por defecto
+#         )
+#         group.save()  # Guarda el grupo en la base de datos
+
+#         # Añade al usuario creador como miembro
+#         group.members.add(request.user)
+#         # Añadir los demás miembros seleccionados
+#         group.members.add(*User.objects.filter(id__in=members))
+
+#         # Redirige al chat grupal
+#         return redirect('appSMS:chat_grupal', group_name=slugify(group.name))
+
+#     else:  # Si no es POST, asumimos que es GET
+#         # Usuarios disponibles para agregar al grupo (excluyendo al creador y al admin)
+#         users = User.objects.exclude(
+#             id=request.user.id).exclude(username='admin')
+#         return render(request, 'appSMS/create_group.html', {'users': users})
+
 @login_required
 def create_group(request):
     if request.method == "POST":
+        # Captura el nombre del grupo y normaliza el nombre a formato slug
+        group_name = request.POST.get("group_name").strip()
+        normalized_name = slugify(group_name)
 
-        # Captura el nombre del grupo
-        group_name = request.POST.get("group_name")
         # Captura los IDs de los miembros seleccionados
         members = request.POST.getlist("members")
         # Captura el archivo del avatar subido
@@ -254,12 +308,13 @@ def create_group(request):
             messages.error(request, "Debes elegir al menos un miembro")
             return redirect('appSMS:crear_grupo')
 
-        # Valida si el grupo ya existe
-        if GroupChat.objects.filter(name=group_name).exists():
-            messages.error(request, "El grupo ya existe.")
+        # Valida si el grupo ya existe usando el nombre normalizado
+        if GroupChat.objects.filter(name=normalized_name).exists():
+            messages.error(
+                request, "El grupo ya existe, prueba con otro nombre")
             return redirect('appSMS:crear_grupo')
 
-         # Valida si el archivo subido es una imagen válida
+        # Valida si el archivo subido es una imagen válida
         if avatar:
             try:
                 img = Image.open(avatar)
@@ -269,9 +324,9 @@ def create_group(request):
                     request, 'Por favor, sube un archivo de imagen válido.')
                 return redirect('appSMS:crear_grupo')
 
-        # Crea el grupo
+        # Crea el grupo con el nombre normalizado
         group = GroupChat(
-            name=group_name,
+            name=normalized_name,
             creator=request.user,
             avatar=avatar if avatar else "group_avatars/default_group.png"  # imagen por defecto
         )
@@ -282,8 +337,8 @@ def create_group(request):
         # Añadir los demás miembros seleccionados
         group.members.add(*User.objects.filter(id__in=members))
 
-        # Redirige al chat grupal
-        return redirect('appSMS:chat_grupal', group_name=slugify(group.name))
+        # Redirige al chat grupal usando el nombre normalizado
+        return redirect('appSMS:chat_grupal', group_name=normalized_name)
 
     else:  # Si no es POST, asumimos que es GET
         # Usuarios disponibles para agregar al grupo (excluyendo al creador y al admin)
