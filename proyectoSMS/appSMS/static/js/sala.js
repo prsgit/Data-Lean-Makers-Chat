@@ -136,31 +136,31 @@ function appendFile(sender, fileUrl, isMyMessage, messageId) {
   // Detectar tipo de archivo
   const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(fileUrl);
   const isVideo = /\.(mp4|avi|mov|mkv)$/i.test(fileUrl);
+  const isDocument = /\.(pdf|docx|doc|pptx|ppt|xlsx|xls|zip)$/i.test(fileUrl);
 
   // Preparar el contenido del archivo según su tipo
   let fileContent;
   if (isImage) {
     fileContent = `
       <a href="${fileUrl}" target="_blank" class="inline-block">
-        <img src="${fileUrl}" alt="Imagen adjunta" class="max-w-[30px] max-h-[30px] rounded-lg object-cover" />
+        <img src="${fileUrl}" alt="Imagen adjunta" class="w-24 h-20 rounded-lg object-cover cursor-pointer text-sm underline"/>
       </a>
     `;
   } else if (isVideo) {
     fileContent = `
-      <a href="${fileUrl}" target="_blank" class="inline-block">
-        <video controls class="max-w-[130px] max-h-[130px] rounded-lg">
-          <source src="${fileUrl}" type="video/mp4">
-          Tu navegador no soporta la etiqueta de video.
-        </video>
-      </a>
+       <a href="${fileUrl}" target="_blank" class="inline-block">
+      <video controls class="w-28 h-28 rounded-lg object-cover">
+        <source src="${fileUrl}" type="video/mp4">
+        Tu navegador no soporta la etiqueta de video.
+      </video>
+    </a>
     `;
-  } else {
+  } else if (isDocument){
+    // Para otros archivos (PDF, DOC, etc.)
     fileContent = `
       <a href="${fileUrl}" download target="_blank" 
-         class="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-100 rounded-lg hover:bg-blue-200">
-        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/>
-        </svg>
+         class="inline-flex items-center px-1 py-1 text-sm font-medium text-blue-600 bg-blue-100 rounded-lg hover:bg-blue-200">
+       <i class="fa-solid fa-circle-down text-sm"></i>
         Descargar archivo
       </a>
     `;
@@ -171,16 +171,16 @@ function appendFile(sender, fileUrl, isMyMessage, messageId) {
     const messageHTML = `
       <div id="message-${messageId}" class="flex justify-end mb-2 items-center space-x-2">
                 <!-- Contenedor del mensaje -->
-                <div class="rounded py-2 px-3 bg-indigo-200 max-w-xs">
-                    <div class="mt-1">${fileContent}</div>
+                <div class="rounded-xl py-2 px-3 bg-indigo-200 max-w-xs">
+                    <div class="text-sm mt-1">${fileContent}</div>
                     <p class="text-right text-xs text-gray-500 mt-1">${timeString}</p>
                 </div>
 
                 <!-- Opciones de mensaje -->
                 <div class="message-options relative">
                     <button onclick="toggleDropdown('dropdownDots-${messageId}', this)" 
-                        class="inline-flex items-center p-2 text-sm font-medium text-gray-500 bg-transparent rounded-full hover:opacity-80 focus:outline-none">
-                        <i class="fa-solid fa-ellipsis-vertical cursor-pointer text-lg text-gray-500 hover:text-gray-700"></i>
+                        class="inline-flex items-center p-1 text-sm font-medium bg-transparent rounded-full hover:opacity-80 focus:outline-none">
+                        <i class="fa-solid fa-ellipsis-vertical cursor-pointer text-lg text-gray-400 hover:text-gray-700"></i>
                     </button>
 
                     <!-- Menú desplegable -->
@@ -208,12 +208,12 @@ function appendFile(sender, fileUrl, isMyMessage, messageId) {
   } else {
     // Mensaje del receptor
     const messageHTML = `
-      <div id="message-${messageId}" class="flex mb-2">
-        <div class="rounded py-2 px-3 bg-[#F2F2F2] max-w-xs">
-          <p class="text-sm font-bold text-teal-700">
+      <div id="message-${messageId}" class="flex items-center mb-2 space-x-2">
+        <div class="rounded-xl py-2 px-3 bg-white max-w-xs">
+          <p class="text-sm font-bold text-gray-500">
             ${sender}
           </p>
-          <div class="mt-1">
+          <div class="text-sm mt-1">
             ${fileContent}
           </div>
           <p class="text-right text-xs text-gray-500 mt-1">

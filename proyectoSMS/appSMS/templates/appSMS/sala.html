@@ -250,9 +250,27 @@
                     </p>
                     {% if message.file %}
                     <div class="mt-1">
+                       <!-- Video -->
+                      {% if message.file.url|lower|slice:"-4:" == ".mp4" or message.file.url|lower|slice:"-4:" == ".mov" or message.file.url|lower|slice:"-4:" == ".avi" or message.file.url|lower|slice:"-4:" == ".mkv" %}
                       <a href="{{ message.file.url }}" target="_blank" class="text-blue-600 text-sm underline">
+                        <video controls class="w-28 h-28 rounded-lg cursor-pointer">
+                          <source src="{{ message.file.url }}" type="video/mp4">
+                          Tu navegador no soporta la etiqueta de video.
+                        </video>
+                      </a>
+                       <!-- Documento -->
+                      {% elif message.file.url|lower|slice:"-4:" == ".pdf" or message.file.url|lower|slice:"-5:" == ".docx" or message.file.url|lower|slice:"-4:" == ".doc" or message.file.url|lower|slice:"-4:" == ".ppt" or message.file.url|lower|slice:"-5:" == ".pptx" or message.file.url|lower|slice:"-4:" == ".xls" or message.file.url|lower|slice:"-5:" == ".xlsx" %}
+                      <a href="{{ message.file.url }}" target="_blank"
+                        class="inline-flex items-center px-1 py-1 text-sm font-medium text-blue-600 bg-blue-100 rounded-lg hover:bg-blue-200">
+                        <i class="fa-solid fa-circle-down text-sm"></i>
                         Descargar archivo
                       </a>
+                       <!-- Imagen -->
+                      {% else %}
+                      <a href="{{ message.file.url }}" target="_blank" class="text-blue-600 text-sm underline">
+                        <img src="{{ message.file.url }}" alt="Imagen enviada" class="w-24 h-20 rounded-lg cursor-pointer text-blue-600 text-sm underline">                       
+                      </a>
+                      {% endif %}
                     </div>
                     {% endif %}
                     <p class="text-right text-xs text-gray-500 mt-1">
@@ -301,9 +319,27 @@
                     </p>
                     {% if message.file %}
                     <div class="mt-1">
+                       <!--Video-->
+                      {% if message.file.url|lower|slice:"-4:" == ".mp4" or message.file.url|lower|slice:"-4:" == ".mov" or message.file.url|lower|slice:"-4:" == ".avi" or message.file.url|lower|slice:"-4:" == ".mkv" %}
                       <a href="{{ message.file.url }}" target="_blank" class="text-blue-600 text-sm underline">
+                        <video controls class="w-28 h-28 rounded-lg cursor-pointer">
+                          <source src="{{ message.file.url }}" type="video/mp4">
+                          Tu navegador no soporta la etiqueta de video.
+                        </video>
+                      </a>
+                       <!--Documento-->
+                      {% elif message.file.url|lower|slice:"-4:" == ".pdf" or message.file.url|lower|slice:"-5:" == ".docx" or message.file.url|lower|slice:"-4:" == ".doc" or message.file.url|lower|slice:"-4:" == ".ppt" or message.file.url|lower|slice:"-5:" == ".pptx" or message.file.url|lower|slice:"-4:" == ".xls" or message.file.url|lower|slice:"-5:" == ".xlsx" %}
+                      <a href="{{ message.file.url }}" target="_blank"
+                        class="inline-flex items-center px-1 py-1 text-sm font-medium text-blue-600 bg-blue-100 rounded-lg hover:bg-blue-200">
+                        <i class="fa-solid fa-circle-down text-sm"></i>
                         Descargar archivo
                       </a>
+                       <!--Imagen-->
+                      {% else %}
+                      <a href="{{ message.file.url }}" target="_blank" class="text-blue-600 text-sm underline">
+                        <img src="{{ message.file.url }}" alt="Imagen enviada" class="w-24 h-20 rounded-lg cursor-pointer text-blue-600 text-sm underline">                       
+                      </a>
+                      {% endif %}
                     </div>
                     {% endif %}
                     <p class="text-right text-xs text-gray-500 mt-1">
