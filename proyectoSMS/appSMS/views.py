@@ -55,31 +55,31 @@ def login_view(request):
     return render(request, 'appSMS/login.html', {'form': form})
 
 
-def registro(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
+# def registro(request):
+#     if request.method == 'POST':
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#         confirm_password = request.POST.get('confirm_password')
 
-        # Validación de la contraseña
-        if password != confirm_password:
-            messages.error(request, "Las contraseñas no coinciden.")
-            return redirect('appSMS:registro')
+#         # Validación de la contraseña
+#         if password != confirm_password:
+#             messages.error(request, "Las contraseñas no coinciden.")
+#             return redirect('appSMS:registro')
 
-        try:
-            # Crear el usuario
-            user = User.objects.create_user(
-                username=username, password=password)
-            user.save()
-            messages.success(
-                request, "Usuario creado con éxito. Puedes iniciar sesión.")
-            return redirect('appSMS:login')
-        except Exception as e:
-            messages.error(
-                request, "Error al crear el usuario: {}".format(str(e)))
-            return redirect('appSMS:registro')
+#         try:
+#             # Crear el usuario
+#             user = User.objects.create_user(
+#                 username=username, password=password)
+#             user.save()
+#             messages.success(
+#                 request, "Usuario creado con éxito. Puedes iniciar sesión.")
+#             return redirect('appSMS:login')
+#         except Exception as e:
+#             messages.error(
+#                 request, "Error al crear el usuario: {}".format(str(e)))
+#             return redirect('appSMS:registro')
 
-    return render(request, 'appSMS/registro.html')
+#     return render(request, 'appSMS/registro.html')
 
 
 # cambiar imagen de perfil de un usuario
