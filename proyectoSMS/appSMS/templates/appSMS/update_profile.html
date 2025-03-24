@@ -54,12 +54,12 @@
     <!-- Enlace para volver -->
     <p class="mt-4 text-center text-sm sm:text-base">
       <span>¿No deseas cambiar tu imagen?</span>
-      <a href="{% url 'appSMS:chat_privado' username=request.user.username %}" class="text-[#3B82F6] hover:underline">
+      <a href="{% url 'appSMS:chat_privado' username=request.user.username %}" class="text-blue-500 hover:underline">
         Volver
       </a>
     </p>
   </div>
 </div>
 
-<script src="{% static 'js/functions.js' %}"></script>
+<script src="{% static 'js/img_previa.js' %}"></script>
 {% endblock %}

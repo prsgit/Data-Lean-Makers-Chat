@@ -54,12 +54,12 @@
     <!-- Enlace para volver -->
     <p class="mt-4 text-center text-sm sm:text-base">
       <span>¿No deseas cambiar la imagen del grupo?</span>
-      <a href="{% url 'appSMS:chat_grupal' group_name=group.name %}" class="text-[#3B82F6] hover:underline">
+      <a href="{% url 'appSMS:chat_grupal' group_name=group.name %}" class="text-blue-500 hover:underline">
         Volver
       </a>
     </p>
   </div>
 </div>
 
-<script src="{% static 'js/functions.js' %}"></script>
+<script src="{% static 'js/img_previa.js' %}"></script>
 {% endblock %}

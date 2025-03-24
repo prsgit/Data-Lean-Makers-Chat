@@ -6,10 +6,11 @@ from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.messages import get_messages
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.http import JsonResponse
-from .models import Message, GroupChat, GroupMessage, PushSubscription, UserProfile
+from .models import Message, GroupChat, GroupMessage, PushSubscription, UserProfile, UserRole, ExternalUserContacts
 from appSMS.utils import send_push_notification
 from PIL import Image
 from django.utils.text import slugify
@@ -121,6 +122,11 @@ def update_group_avatar(request, group_id):
     except GroupChat.DoesNotExist:
         messages.error(request, "El grupo no existe.")
         return redirect('appSMS:chat_grupal', group_name=slugify(group.name))
+    
+     # si el rol es externo no deja de cambiar la imagen de un grupo desde la app
+    roles = [role.role for role in UserRole.objects.filter(user=request.user)]
+    if "externo" in roles:
+        return redirect('appSMS:chat_grupal', group_name=slugify(group.name))
 
     if request.method == 'POST':
         avatar = request.FILES.get('avatar')  # Captura el archivo subido
@@ -151,7 +157,17 @@ def update_group_avatar(request, group_id):
 # Chat entre dos usuarios
 @login_required
 def chat_privado(request, username=None):
+    
     users = User.objects.exclude(username='admin')
+
+    # Si el usuario actual es externo, filtrar solo los contactos permitidos
+    if UserRole.objects.filter(user=request.user, role="externo").exists():
+        try:
+            contacts = ExternalUserContacts.objects.get(external_user=request.user)
+            users = contacts.allowed_users.all() | User.objects.filter(id=request.user.id)  # Solo los usuarios permitidos y asi mismo.
+        except ExternalUserContacts.DoesNotExist:
+            users = User.objects.none()  # No puede ver a nadie
+
     groups = GroupChat.objects.filter(members=request.user)
 
     # Convertir nombres de grupos a formato correcto
@@ -220,61 +236,17 @@ def logout_view(request):
     return redirect('appSMS:home')
 
 
-# @login_required
-# def create_group(request):
-#     if request.method == "POST":
-
-#         # Captura el nombre del grupo
-#         group_name = request.POST.get("group_name")
-#         # Captura los IDs de los miembros seleccionados
-#         members = request.POST.getlist("members")
-#         # Captura el archivo del avatar subido
-#         avatar = request.FILES.get("avatar")
-
-#         # Valida si se seleccionaron miembros
-#         if not members:
-#             messages.error(request, "Debes elegir al menos un miembro")
-#             return redirect('appSMS:crear_grupo')
-
-#         # Valida si el grupo ya existe
-#         if GroupChat.objects.filter(name=group_name).exists():
-#             messages.error(request, "El grupo ya existe.")
-#             return redirect('appSMS:crear_grupo')
-
-#          # Valida si el archivo subido es una imagen válida
-#         if avatar:
-#             try:
-#                 img = Image.open(avatar)
-#                 img.verify()  # Verifica si el archivo es una imagen válida
-#             except (IOError, SyntaxError):
-#                 messages.error(
-#                     request, 'Por favor, sube un archivo de imagen válido.')
-#                 return redirect('appSMS:crear_grupo')
-
-#         # Crea el grupo
-#         group = GroupChat(
-#             name=group_name,
-#             creator=request.user,
-#             avatar=avatar if avatar else "group_avatars/default_group.png"  # imagen por defecto
-#         )
-#         group.save()  # Guarda el grupo en la base de datos
-
-#         # Añade al usuario creador como miembro
-#         group.members.add(request.user)
-#         # Añadir los demás miembros seleccionados
-#         group.members.add(*User.objects.filter(id__in=members))
-
-#         # Redirige al chat grupal
-#         return redirect('appSMS:chat_grupal', group_name=slugify(group.name))
-
-#     else:  # Si no es POST, asumimos que es GET
-#         # Usuarios disponibles para agregar al grupo (excluyendo al creador y al admin)
-#         users = User.objects.exclude(
-#             id=request.user.id).exclude(username='admin')
-#         return render(request, 'appSMS/create_group.html', {'users': users})
-
 @login_required
 def create_group(request):
+    
+    # si el rol es externo no deja de hacer un grupo desde la app
+    username = request.session.get("chat_username", request.user.username) # se obtiene el username desde la sesión o request
+    roles = [r.role for r in UserRole.objects.filter(user=request.user)]
+    if "externo" in roles:
+        response = redirect('appSMS:chat_privado', username=username)  # se queda en la vista del chat privado
+        return response
+    
+
     if request.method == "POST":
         # Captura el nombre del grupo y normaliza el nombre a formato slug
         group_name = request.POST.get("group_name").strip()
