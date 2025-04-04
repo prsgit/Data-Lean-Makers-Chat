@@ -257,30 +257,49 @@ chatSocket.onmessage = function (e) {
     return;
   }
 
-  if (data.message && data.sender) {
+  if (data.message && data.sender && data.sender_realname) {
     appendMessage(
       data.sender,
       data.message,
-      data.sender === username,
+      data.sender_realname === username,
       messageId
     );
   }
-  if (data.file_url && data.sender) {
+
+  if (data.file_url && data.sender && data.sender_realname) {
     console.log("URL del archivo:", data.file_url); //  URL del archivo recibido
     const fileMessageId = data.message_id; // Captura el ID del mensaje relacionado con el archivo
 
     appendFile(
       data.sender,
       data.file_url,
-      data.sender === username,
+      data.sender_realname === username,
       fileMessageId
     );
   }
+
+  if (data.type === "sistema") {
+    mostrarMensajeDelSistema(data.message);
+  }
+  
 };
 
 chatSocket.onclose = function (e) {
   console.error("Chat socket cerrado inesperadamente");
 };
+
+// muestra un sms de advertencia si tienes el permiso "lectura" activado y se ha intentado por consola enviar un sms/archivo
+function mostrarMensajeDelSistema(texto) {
+  const chatLog = document.getElementById("chat-log");
+  const msgSistema = document.createElement("div");
+
+  msgSistema.className = "text-center text-sm text-gray-700 italic my-2";
+  msgSistema.textContent = texto;
+
+  chatLog.appendChild(msgSistema);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
 
 // Manejo del envio
 document.addEventListener("DOMContentLoaded", function () {

@@ -1,11 +1,11 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
-from .models import UserProfile,ExternalUserContacts, UserRole
+from .models import UserProfile, AllowedContacts, UserSystemRole, PermissionType, RolePermission
 
 User = get_user_model()
 
-# cuando creamos un perfil nuevo se agrega automáticamente el UserProfile de models.py
+# señal cuando creamos un perfil nuevo se agrega automáticamente el UserProfile de models.py
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     """
@@ -17,21 +17,44 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 
 
-# para hacer que los contactos sean bidireccionales automáticamente, ExternalUserContacts de models.py
-@receiver(m2m_changed, sender=ExternalUserContacts.allowed_users.through)
+# señal para mantener sincronizados los contactos de forma bidireccional
+@receiver(m2m_changed, sender=AllowedContacts.allowed_users.through)
 def sync_contacts_bidirectionally(sender, instance, action, reverse, **kwargs):
     """
-    Asegura que  si un usuario externo agrega otro usuario a su lista de contactos,
-    aparezcan en las dos listas de usuarios.
-    """
-    if action == "post_add":  # cuando se agregan contactos
-        for user in instance.allowed_users.all():
-            if UserRole.objects.filter(user=user, role="externo").exists():  # solo si el usuario es externo
-                contact_list, created = ExternalUserContacts.objects.get_or_create(external_user=user) #  busca si el usuario agregado tiene una lista de contactos y si no la tiene la crea.
-                if instance.external_user not in contact_list.allowed_users.all():
-                    contact_list.allowed_users.add(instance.external_user) # agrega al usuario actual en la lista del otro.
+    Asegura que si un usuario agrega a otro a su lista de contactos,
+    la relación se cree también en sentido inverso.
 
-    elif action == "post_remove":  # cuando se eliminan contactos
-        for user in User.objects.filter(contact_list__allowed_users=instance.external_user): # recorre sobre todos los usuarios que todavía tienen a instance.external_user en su lista de contactos.
-            if user not in instance.allowed_users.all(): # verifica si el usuario sigue n la lista de contactos
-                user.contact_list.allowed_users.remove(instance.external_user) # lo elimina en ambas lista de contactos
+    - Si se añade un contacto, también se añade la relación inversa.
+    - Si se elimina un contacto, se elimina también la relación inversa.
+    """
+    if action == "post_add":  # Cuando se agregan contactos
+        for user in instance.allowed_users.all():
+            # Busca o crea la lista de contactos del usuario agregado
+            restricted_contacts, created = AllowedContacts.objects.get_or_create(user=user)
+            
+            # Si el usuario actual no está ya en la lista del otro, lo agrega
+            if instance.user not in restricted_contacts.allowed_users.all():
+                restricted_contacts.allowed_users.add(instance.user)
+
+    elif action == "post_remove":  # Cuando se eliminan contactos
+        # Recorre los usuarios que todavía tienen a instance.user como contacto
+        for user in User.objects.filter(restricted_contacts__allowed_users=instance.user):
+            # Si el usuario ya no está en la lista actual, elimina la relación inversa
+            if user not in instance.allowed_users.all():
+                user.restricted_contacts.allowed_users.remove(instance.user)
+
+
+
+@receiver(post_save, sender=UserSystemRole)
+def assign_all_permissions_to_new_role(sender, instance, created, **kwargs):
+    """
+    Cuando se crea un nuevo rol, se le asigna a todos los roles automáticamente todos los tipos de permisos
+    con allowed=True (bloqueados por defecto).
+    """
+    if created:
+        for permission in PermissionType.objects.all():
+            RolePermission.objects.create(
+                role=instance,
+                permission_type=permission,
+                allowed=True  # bloqueado por defecto
+            )

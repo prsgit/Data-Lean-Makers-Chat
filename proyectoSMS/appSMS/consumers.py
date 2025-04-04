@@ -8,6 +8,7 @@ from channels.db import database_sync_to_async
 from django.conf import settings
 from .models import Message, GroupChat, GroupMessage
 from appSMS.utils import send_push_notification
+from appSMS.permissions import has_permission, get_anonymous_role
 
 User = get_user_model()
 
@@ -51,6 +52,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         event_type = data.get('type')
+
+        # Verificar si el usuario tiene activado el permiso "leer y escribir"
+        leer_activado = await database_sync_to_async(has_permission)(self.user, "leer")
+        escribir_activado = await database_sync_to_async(has_permission)(self.user, "escribir")
+
+        if leer_activado or escribir_activado:
+            await self.send(text_data=json.dumps({
+                "type": "sistema",
+                "message": "⚠️ No tienes permiso para escribir ni enviar archivos"
+            }))
+            return
 
         # Manejar eventos de eliminación para mí
         if event_type == 'delete_for_me':
@@ -112,12 +124,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
             other_user_id = other_users[0] if other_users else sender.id
             receiver = await database_sync_to_async(User.objects.get)(id=other_user_id)
 
+            #Verifica si el usuario tiene activado el permiso "anonimo"
+            is_anonymous = await database_sync_to_async(has_permission)(sender, "anonimo")
+
+            # Inicializa el alias como None
+            sender_alias = None
+
+            # Si el permiso está activado, busca el rol que lo tiene
+            if is_anonymous:
+                role_with_alias = await database_sync_to_async(get_anonymous_role)(sender)
+
+                if role_with_alias:
+                    alias_name = role_with_alias.name  # Ej: "Soporte"
+                    sender_alias = f"{alias_name}_{sender.username}"  # Ej: "Soporte_Pedro"
+
+
             message_instance = await database_sync_to_async(Message.objects.create)(
                 room_name=self.room_name,
                 sender=sender,
                 receiver=receiver,
                 content=message,
-                file=file_url
+                file=file_url,
+                sender_alias=sender_alias
             )
             print(
                 f"Mensaje enviado al usuario {receiver.username} en la sala {self.room_name}")
@@ -130,18 +158,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
             await database_sync_to_async(send_push_notification)(receiver, payload)
 
+        if sender_alias:
+            display_name = sender_alias.split("_")[0]
+        else:
+            display_name = sender.username
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
                 'message': message,
-                'sender_username': sender.username,
+                'sender_username': display_name, # muestra el alias
+                'sender_realname': sender.username, # muestra el nombre real
                 'file_url': file_url,
                 'message_id': message_instance.id
             }
         )
 
     async def chat_message(self, event):
+
+        if await database_sync_to_async(has_permission)(self.user, "escribir"):
+            return  # ignora el mensaje y no lo envía
+
         message = event['message']
         sender_username = event['sender_username']
         file_url = event.get('file_url', None)
@@ -153,6 +190,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'message': message,
             'sender': sender_username,
+            'sender_realname': event['sender_realname'],
             'file_url': file_url,
             'message_id': message_id
         }))

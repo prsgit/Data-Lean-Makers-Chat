@@ -2,96 +2,68 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django import forms
-from django.contrib.auth.hashers import make_password
-from .models import UserRole, ExternalUserContacts, Message, GroupChat, GroupMessage
+from .models import UserSystemRole, UserRoleAssignment, PermissionType, RolePermission, AllowedContacts, Message, GroupChat, GroupMessage
 
 admin.site.site_header = "Chat Data Lean Makers"
 
 
-class UserRoleInline(admin.TabularInline):
-    """Permite seleccionar roles al crear un usuario en el administrador."""
-    model = UserRole
-    extra = 0  # No mostrar filas vacías para agregar nuevos roles
-    can_delete = False  # no se elimina el rol desde aquí
-    max_num = 1  # Un usuario solo puede recibir un rol en la creación
-
-
-class CustomUserCreationForm(forms.ModelForm):
-    """Extiende el formulario de creación de usuario para incluir la selección de roles (Interno o Externo)."""
-    role = forms.ChoiceField(
-        choices=UserRole.ROLE_CHOICES,  # lista filtrada
-        required=True,
-        label="Rol"
-    )
-
-    class Meta:
-        model = User
-        fields = ("username", "email", "password")
-
-    def save(self, commit=True):
-        """Guarda el usuario y le asigna el rol seleccionado antes de guardarlo completamente."""
-        user = super().save(commit=False)
-        user.password = make_password(self.cleaned_data["password"])
-
-        user.save()  # Guardamos el usuario primero para asegurarnos de que tiene un ID
-
-    # Creamos el rol manualmente
-        UserRole.objects.create(user=user, role=self.cleaned_data["role"])
-
-        return user
-
+class RolePermissionInline(admin.TabularInline):
+    model = RolePermission
+    extra = 0
+    can_delete = False # no se podrán eliminar desde aquí
+    readonly_fields = ['permission_type']  # Solo lectura
+    fields = ['permission_type', 'allowed']  # Orden y visibilidad
+ 
+@admin.register(UserSystemRole)
+class UserSystemRoleAdmin(admin.ModelAdmin): # listado de roles
+    list_display = ('name', 'description')
+    inlines = [RolePermissionInline]
+class UserRoleAssignmentInline(admin.TabularInline):# asignar roles a los usuarios
+    model = UserRoleAssignment
+    extra = 1 # fila para agregar un rol adicional
 
 class CustomUserAdmin(UserAdmin):
-    """Personaliza Django Admin para que el formulario de creación solo permita Interno o Externo."""
+    inlines = [UserRoleAssignmentInline] # extendemos aqui la clase UserRoleAssignmentInline
 
-    add_form = CustomUserCreationForm  # formulario personalizado.
-
-    add_fieldsets = ( # lo que solicita al crear un usuario.
-        (None, {
-            'classes': ('wide',),
-            'fields': ('username', 'email', 'password', 'role'),
-        }),
-    )
-    
-    """edición de rol"""
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        if obj:  # si el usuario ya existe (modo edición)
-            self.inlines = [UserRoleInline]
-        else:  # si es nuevo, no mostrar inlines
-            self.inlines = []
-        return form
-
-    list_display = ('username', 'email', 'get_roles','is_staff', 'is_superuser')
-                    
+    list_display = ('username', 'email', 'get_roles', 'is_staff', 'is_superuser')
 
     def get_roles(self, obj):
-
-        # Buscamos los roles asignados al usuario
-        roles = UserRole.objects.filter(user=obj)
-        # Mostrar los roles
-        return ", ".join([role.get_role_display() for role in roles])
+        roles = obj.assigned_roles.select_related('role')
+        return ", ".join([assignment.role.name for assignment in roles])
 
     get_roles.short_description = "Roles"
-
 
 admin.site.unregister(User)  # Quitamos el admin de usuarios predeterminado
 admin.site.register(User, CustomUserAdmin)  # Registrar versión personalizada
 
 
-# lista de contactos para usuarios con rol externo
-@admin.register(ExternalUserContacts)
-class externalUserContactAdmin(admin.ModelAdmin):
-    list_display = ('external_user', 'get_allowed_users')
-    filter_horizontal = ('allowed_users',)
-    ordering = ('external_user',) 
 
-    def get_external_user(self, obj):
-        return obj.external_user.username
+@admin.register(PermissionType)
+class PermissionTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description')
 
-    get_external_user.short_description = "Usuario Externo"
 
-    def get_allowed_users(self, obj):
+@admin.register(RolePermission)
+class RolePermissionAdmin(admin.ModelAdmin):
+    list_display = ('role', 'permission_type', 'allowed')
+    list_filter = ('role', 'permission_type', 'allowed')
+    search_fields = ('role__name', 'permission_type__name')  # buscar por nombre del rol o permiso
+
+
+
+# lista de contactos permitidos
+@admin.register(AllowedContacts)
+class AllowedContactsAdmin(admin.ModelAdmin):
+    list_display = ('get_user', 'get_allowed_users')
+    filter_horizontal = ('allowed_users',) # para seleccionar varios usuarios permitidos
+    ordering = ('user',) 
+
+    def get_user(self, obj): # esta función accede al username del usuario
+        return obj.user.username
+
+    get_user.short_description = "Usuario"
+
+    def get_allowed_users(self, obj): # esta función muestra todos los usuarios permitidos
         return ", ".join([user.username for user in obj.allowed_users.all()])
 
     get_allowed_users.short_description = "Usuarios Permitidos"
@@ -100,13 +72,22 @@ class externalUserContactAdmin(admin.ModelAdmin):
 # mensajes en chat entre dos usuarios
 class MessageAdmin(admin.ModelAdmin):
     # Campos que se mostrarán en la lista
-    list_display = ('sender', 'receiver', 'timestamp',
+    list_display = ('sender_with_alias', 'receiver', 'timestamp',
                     'content', 'deleted_by', 'deleted_for_all', 'deleted_date')
     list_filter = ('sender', 'receiver', 'timestamp', 'deleted_by')
     # Campos en los que se puede buscar
     search_fields = ('content', 'sender__username', 'receiver__username')
     # Ordenar por fecha, de más reciente a más antiguo
     ordering = ('-timestamp',)
+
+    def sender_with_alias(self, obj):
+        """
+        Muestra el alias si existe (ej: Soporte_Dani),
+        o el nombre real del remitente si no tiene alias.
+        """
+        return obj.sender_alias if obj.sender_alias else obj.sender.username
+
+    sender_with_alias.short_description = 'Enviado por'
 
 
 admin.site.register(Message, MessageAdmin)
@@ -116,7 +97,7 @@ admin.site.register(Message, MessageAdmin)
 class GroupChatAdmin(admin.ModelAdmin):
     list_display = ('name', 'creator', 'created_at', 'display_members')
     search_fields = ('name',)
-    ordering = ('-created_at',)
+    ordering = ('-created_at',) 
 
     def display_members(self, obj):
         return ", ".join([user.username for user in obj.members.all()])
@@ -124,7 +105,7 @@ class GroupChatAdmin(admin.ModelAdmin):
     display_members.short_description = "Miembros"
 
 
-admin.site.register(GroupChat, GroupChatAdmin)
+admin.site.register(GroupChat, GroupChatAdmin,)
 
 
 # mensajes de grupos de chat
