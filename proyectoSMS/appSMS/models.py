@@ -156,10 +156,48 @@ class GroupChat(models.Model):
         verbose_name_plural = "Grupos de chats"
 
 
+# para indicar el rol que tiene el usuario dentro de un grupo 
+class GroupMemberRole(models.Model):
+    user = models.ForeignKey(User, on_delete= models.CASCADE, related_name="group_roles", verbose_name="Usuario")
+    group = models.ForeignKey(GroupChat, on_delete= models.CASCADE, related_name="member_roles", verbose_name="Grupo")
+    role = models.ForeignKey(UserSystemRole, on_delete= models.CASCADE, related_name="group_assignments", verbose_name="Rol asignado")
+
+
+    class Meta:
+        unique_together = ('user', 'group')  # Evita duplicar roles por usuario en el mismo grupo
+        verbose_name = "Rol en grupo"
+        verbose_name_plural = "Roles en grupos"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.role.name} en {self.group.name}"
+
+
+
+# para indicar los permisos que tiene el rol de un usuario dentro de un grupo
+class GroupRolePermission(models.Model):
+    group = models.ForeignKey(GroupChat, on_delete= models.CASCADE, related_name="role_permissions", verbose_name="Grupo")
+    role = models.ForeignKey(UserSystemRole, on_delete=models.CASCADE, related_name="group_permissions", verbose_name="Rol")
+    permission_type = models.ForeignKey(PermissionType, on_delete=models.CASCADE, related_name="group_permissions", verbose_name="Permiso")
+    allowed = models.BooleanField(default=True, verbose_name="Bloqueado")
+
+
+    class Meta:
+        unique_together = ('group', 'role', 'permission_type') # evita que asignemos el mismo permiso más de una vez al mismo rol
+        verbose_name = "Permiso de rol en grupo"
+        verbose_name_plural = "Permisos de rol en grupo"
+
+    def __str__(self):
+        estado = "Permitido" if self.allowed else "Denegado"
+        return f"{self.role.name} en {self.group.name} - {self.permission_type.name}: {estado}"
+     
+
+
+# mensajes de grupo
 class GroupMessage(models.Model):
     group = models.ForeignKey(
         GroupChat, on_delete=models.CASCADE, related_name="messages", verbose_name="Nombre del Grupo")
     sender = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Enviado por")
+    sender_alias = models.CharField(max_length=150, blank=True, null=True, help_text="Nombre que se muestra al enviar el mensaje si el usuario es anónimo")
     content = models.TextField("Contenido del Mensaje",blank=True, null=True)
     file = models.FileField("Archivo Adjunto",upload_to="group_files/", blank=True, null=True)
     timestamp = models.DateTimeField("Fecha y Hora de Envío",auto_now_add=True)

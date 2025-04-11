@@ -8,7 +8,7 @@ from channels.db import database_sync_to_async
 from django.conf import settings
 from .models import Message, GroupChat, GroupMessage
 from appSMS.utils import send_push_notification
-from appSMS.permissions import has_permission, get_anonymous_role
+from appSMS.permissions import has_permission, get_anonymous_role, has_group_permission, get_anonymous_group_role
 
 User = get_user_model()
 
@@ -52,10 +52,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         event_type = data.get('type')
+        user = self.scope['user']
 
-        # Verificar si el usuario tiene activado el permiso "leer y escribir"
-        leer_activado = await database_sync_to_async(has_permission)(self.user, "leer")
-        escribir_activado = await database_sync_to_async(has_permission)(self.user, "escribir")
+        if self.group:
+            # Para grupos: verificamos permisos de grupo
+            leer_activado = await database_sync_to_async(has_group_permission)(user, self.group, "leer")
+            escribir_activado = await database_sync_to_async(has_group_permission)(user, self.group, "escribir")
+        else:
+            # Para chats individuales: verificamos permisos globales
+            leer_activado = await database_sync_to_async(has_permission)(user, "leer")
+            escribir_activado = await database_sync_to_async(has_permission)(user, "escribir")
 
         if leer_activado or escribir_activado:
             await self.send(text_data=json.dumps({
@@ -97,12 +103,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if file_url:
             file_url = await self.save_file(file_url, is_group_chat=bool(self.group))
 
+
+        # Verificar si tiene permiso anónimo en el grupo
+        is_anonymous = await database_sync_to_async(has_group_permission)(sender, self.group, "anonimo")
+
+        sender_alias = None
+        if is_anonymous:
+            role_with_alias = await database_sync_to_async(get_anonymous_group_role)(sender, self.group)
+            if role_with_alias:
+                alias_name = role_with_alias.name  # Ej: "Soporte"
+                sender_alias = f"{alias_name}_{sender.username}"
+
+        # Guardar el mensaje en grupo con alias si aplica
         if self.group:
             message_instance = await database_sync_to_async(GroupMessage.objects.create)(
                 group=self.group,
                 sender=sender,
                 content=message,
-                file=file_url
+                file=file_url,
+                sender_alias=sender_alias
             )
             print(
                 f"Mensaje enviado al grupo {self.room_name} por {sender.username}")
@@ -175,9 +194,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def chat_message(self, event):
+        if self.group:
+            permiso_denegado = await database_sync_to_async(has_group_permission)(self.user, self.group, "escribir")
+        else:
+            permiso_denegado = await database_sync_to_async(has_permission)(self.user, "escribir")
 
-        if await database_sync_to_async(has_permission)(self.user, "escribir"):
-            return  # ignora el mensaje y no lo envía
+        if permiso_denegado:
+            return # ignora el mensaje y no lo envía
 
         message = event['message']
         sender_username = event['sender_username']

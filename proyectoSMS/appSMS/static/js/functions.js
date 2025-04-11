@@ -450,7 +450,7 @@ window.deleteMessageForAll = function (messageId) {
   }
 };
 
-// Función solo para mobile, se ve la listade usuarios y al elegir uno cambia al chat y viceversa.
+// Función solo para mobile, se ve la lista de usuarios y al elegir uno cambia al chat y viceversa.
 document.addEventListener("DOMContentLoaded", function () {
   // Obtener los bloques
   const contactsBlock = document.getElementById("contacts-block");

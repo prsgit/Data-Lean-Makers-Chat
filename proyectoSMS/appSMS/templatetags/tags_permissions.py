@@ -1,18 +1,22 @@
 from django import template
-from appSMS.permissions import has_permission 
+from appSMS.permissions import has_group_permission, has_permission 
 
 register = template.Library()
 
-@register.simple_tag
-def has_perm(user, code):
+
+@register.simple_tag(takes_context=True)
+def has_perm(context, user, code):
     """
-    Uso en template:
-        {% has_perm user "restringir" as puede %}
-        {% if puede %}
-            <!-- Mostrar algo si tiene permiso -->
-        {% endif %}
+    Template tag unificado para permisos globales o de grupo.
+
+    - Si `selected_group` está en el contexto, verifica permisos dentro del grupo.
+    - Si no, verifica permisos globales.
     """
+    group = context.get('selected_group')  # se usa automáticamente si existe
+    if group:
+        return has_group_permission(user, group, code)
     return has_permission(user, code)
+
 
 
 @register.filter

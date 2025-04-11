@@ -155,7 +155,7 @@ function appendFile(sender, fileUrl, isMyMessage, messageId) {
       </video>
     </a>
     `;
-  } else if (isDocument){
+  } else if (isDocument) {
     // Para otros archivos (PDF, DOC, etc.)
     fileContent = `
       <a href="${fileUrl}" download target="_blank" 
@@ -281,7 +281,6 @@ chatSocket.onmessage = function (e) {
   if (data.type === "sistema") {
     mostrarMensajeDelSistema(data.message);
   }
-  
 };
 
 chatSocket.onclose = function (e) {
@@ -300,9 +299,51 @@ function mostrarMensajeDelSistema(texto) {
   chatLog.scrollTop = chatLog.scrollHeight;
 }
 
+// Función para manejar el estado de primer acceso
+// function handlePrimerAcceso(primer_acceso) {
+//   // Si es el primer acceso, mostramos la vista completa
+//   if (primer_acceso) {
+//       // Almacenamos en localStorage que es el primer acceso
+//       localStorage.setItem("primer_acceso", "true");
+//       document.querySelector(".vista-completa").classList.remove("hidden");
+//       document.querySelector("#chat-block").classList.add("hidden");
+//   } else {
+//       // Si ya no es el primer acceso, mostramos el chat normal
+//       localStorage.setItem("primer_acceso", "false");
+//       document.querySelector(".vista-completa").classList.add("hidden");
+//       document.querySelector("#chat-block").classList.remove("hidden");
+//   }
+// }
 
+// Función para marcar como no primer acceso cuando se selecciona un grupo o chat
+// function marcarComoNoPrimerAcceso() {
+//   // Actualizar el estado en localStorage
+//   localStorage.setItem("primer_acceso", "false");
+//   // Actualizar la vista
+//   document.querySelector(".vista-completa").classList.add("hidden");
+//   document.querySelector("#chat-block").classList.remove("hidden");
+// }
 // Manejo del envio
 document.addEventListener("DOMContentLoaded", function () {
+  // // Verificar si hay un valor de primer acceso en localStorage
+  // const primer_acceso = localStorage.getItem("primer_acceso");
+    
+  // // Si no existe en localStorage, usar el valor del servidor
+  // if (!primer_acceso) {
+  //     const serverPrimerAcceso = document.getElementById('primer-acceso-value');
+  //     if (serverPrimerAcceso) {
+  //         const valor = serverPrimerAcceso.value === "true";
+  //         handlePrimerAcceso(valor);
+  //         // Solo almacenamos en localStorage si es el primer acceso
+  //         if (valor) {
+  //             localStorage.setItem("primer_acceso", "true");
+  //         }
+  //     }
+  // } else {
+  //     // Si existe en localStorage, usamos ese valor
+  //     handlePrimerAcceso(primer_acceso === "true");
+  // }
+
   const messageSubmit = document.querySelector("#chat-message-submit");
   const messageInput = document.querySelector("#chat-message-input");
   const fileInput = document.querySelector("#chat-file-input");

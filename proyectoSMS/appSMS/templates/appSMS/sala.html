@@ -125,7 +125,18 @@
           </div>
         </div>
 
-
+        <!-- Valor oculto para el primer acceso -->
+        <input type="hidden" id="primer-acceso-value" value="{{ primer_acceso }}">
+        {% if primer_acceso %}
+        <!-- Mostrar la vista completa -->
+    <div class="vista-completa">
+      <!-- Aquí deberías mostrar todo el contenido normal del chat -->
+      <!-- Chat -->
+      <div id="chat-block" class="hidden md:flex w-full md:w-2/3 border flex-col">
+          <!-- Resto del contenido del chat que ya tienes -->
+      </div>
+  </div>
+        {% else %}
         <!-- Chat -->
         <div id="chat-block" class="hidden md:flex w-full md:w-2/3 border flex-col">
 
@@ -398,6 +409,7 @@
             </div>
           </div>
         </div>
+        {% endif %}
       </div>
     </div>
   </div>

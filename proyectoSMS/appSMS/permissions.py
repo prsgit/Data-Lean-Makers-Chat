@@ -1,4 +1,4 @@
-from .models import RolePermission
+from .models import RolePermission, GroupMemberRole, GroupRolePermission, PermissionType
 from django.contrib.auth import get_user_model
 
 
@@ -34,6 +34,34 @@ def has_permission(user, code):
 
 
 
+
+def has_group_permission(user, group, code):
+    """
+    Verifica si un usuario tiene un permiso específico activado dentro de un grupo.
+
+    :param user: instancia del usuario
+    :param group: instancia del grupo
+    :param code: código del permiso (ej: "leer", "escribir")
+    :return: True si el permiso está activado (allowed=True), False en caso contrario
+    """
+    try:
+        # busca el rol del usuario en ese grupo
+        member_role = GroupMemberRole.objects.get(user=user, group=group)
+
+        # obtiene el permiso de un rol en ese grupo
+        permission = GroupRolePermission.objects.get(
+            group=group,
+            role=member_role.role,
+            permission_type__code=code
+        )
+
+        return permission.allowed  # muestra True si está permitido (allowed=True)
+
+    except (GroupMemberRole.DoesNotExist, GroupRolePermission.DoesNotExist):
+        return False  # si no tiene rol o no tiene permiso, se niega el acceso
+
+
+
 def get_anonymous_role(user):
     """
     Busca entre todos los roles asignados a un usuario y devuelve el primero que tenga
@@ -63,6 +91,37 @@ def get_anonymous_role(user):
 
 
 
+def get_anonymous_group_role(user, group):
+    """
+    Busca el rol que tiene un usuario dentro de un grupo y verifica si tiene
+    activado el permiso 'anonimo' en ese contexto grupal.
+    
+    :param user: Usuario que envía el mensaje.
+    :param group: Grupo donde se evalúa.
+    :return: Rol del usuario si tiene el permiso activado, o None si no.
+    """
+    try:
+        # busca el rol que el usuario tiene en ese grupo
+        member_role = GroupMemberRole.objects.get(user=user, group=group)
+        role = member_role.role
+
+        # busca si ese rol en ese grupo tiene activado el permiso 'anonimo'
+        permission = GroupRolePermission.objects.get(
+            group=group,
+            role=role,
+            permission_type__code="anonimo"
+        )
+
+        if permission.allowed:
+            return role
+
+    except (GroupMemberRole.DoesNotExist, GroupRolePermission.DoesNotExist):
+        pass  # si no tiene rol o ese rol no tiene permiso anonimo se ignora y sigue
+
+    return None # si no encontró nada, devuelve None
+
+
+
 def get_visible_contacts(user):
     """
     Devuelve una lista de contactos visibles para el usuario.
@@ -76,3 +135,6 @@ def get_visible_contacts(user):
         return User.objects.none()
     else:
         return User.objects.exclude(username='admin')
+
+
+

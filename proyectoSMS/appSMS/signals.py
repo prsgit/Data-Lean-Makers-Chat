@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
-from .models import UserProfile, AllowedContacts, UserSystemRole, PermissionType, RolePermission
+from .models import UserProfile, AllowedContacts, UserSystemRole, PermissionType, RolePermission, GroupMemberRole, GroupRolePermission, GroupChat
 
 User = get_user_model()
 
@@ -58,3 +58,40 @@ def assign_all_permissions_to_new_role(sender, instance, created, **kwargs):
                 permission_type=permission,
                 allowed=True  # bloqueado por defecto
             )
+
+
+
+@receiver(post_save, sender=GroupMemberRole)
+def assign_group_permissions(sender, instance, created, **kwargs):
+    """
+    Cuando se asigna un rol a un usuario dentro de un grupo (GroupMemberRole),
+    esta señal asigna automáticamente TODOS los permisos del sistema a ese rol,
+    dentro del contexto de ese grupo, como bloqueados por defecto (allowed=True).
+    """
+    if created:
+        for permission in PermissionType.objects.all():
+            GroupRolePermission.objects.get_or_create(
+                group=instance.group,
+                role=instance.role,
+                permission_type=permission,
+                defaults={'allowed': True}  # bloqueado por defecto
+            )
+
+
+
+@receiver(post_save, sender=PermissionType)
+def assign_new_permission_to_all_group_roles(sender, instance, created, **kwargs):
+    """
+    Cuando se crea un nuevo tipo de permiso (PermissionType), esta señal se asegura de que
+    ese permiso se asigne a todos los roles en todos los grupos existentes,
+    como bloqueado por defecto (allowed=True).
+    """
+    if created:
+        for group in GroupChat.objects.all():
+            for role in UserSystemRole.objects.all():
+                GroupRolePermission.objects.get_or_create(
+                    group=group,
+                    role=role,
+                    permission_type=instance,
+                    defaults={'allowed': True}  # bloqueado por defecto
+                )

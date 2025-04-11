@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django import forms
-from .models import UserSystemRole, UserRoleAssignment, PermissionType, RolePermission, AllowedContacts, Message, GroupChat, GroupMessage
+from .models import UserSystemRole, UserRoleAssignment, PermissionType, RolePermission, AllowedContacts, Message, GroupChat, GroupMessage, GroupMemberRole, GroupRolePermission
 
 admin.site.site_header = "Chat Data Lean Makers"
 
@@ -93,8 +93,23 @@ class MessageAdmin(admin.ModelAdmin):
 admin.site.register(Message, MessageAdmin)
 
 
+
+class GroupMemberRoleInline(admin.TabularInline):
+    model = GroupMemberRole
+    extra = 0
+
+
+class GroupRolePermissionInline(admin.TabularInline):
+    model = GroupRolePermission
+    extra = 0
+    can_delete = False
+    readonly_fields = ('role', 'permission_type')
+    fields = ('role', 'permission_type', 'allowed')
+
+
 # grupos de chat
 class GroupChatAdmin(admin.ModelAdmin):
+    inlines = [GroupMemberRoleInline, GroupRolePermissionInline]
     list_display = ('name', 'creator', 'created_at', 'display_members')
     search_fields = ('name',)
     ordering = ('-created_at',) 
