@@ -397,10 +397,9 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // desplazar scroll hacia abajo al cargar la vista del chat
-  const chatLog = document.getElementById("chat-log");
+  const chatLog = document.querySelector("#chat-log");
   if (chatLog) {
-    setTimeout(() => {
     chatLog.scrollTop = chatLog.scrollHeight;
-    }, 0); // ejecución tras render completo
   }
+
 });
