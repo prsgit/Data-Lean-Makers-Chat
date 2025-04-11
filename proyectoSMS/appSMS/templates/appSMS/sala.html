@@ -251,9 +251,9 @@
           </div>
 
           <!-- Chat mensajes -->
-          <div class="flex-1 overflow-auto bg-gray-200">
-            <div class="py-2 px-3">
-              <ul class="space-y-2" id="chat-log">
+          <div class="flex-1 overflow-auto bg-gray-200" id="chat-container">
+            <div class="py-2 px-3 h-full overflow-y-auto" id="chat-log">
+              <ul class="space-y-2">
                 {% for message in messages %}
                 {% if message.sender.username == request.user.username %}
                 <!-- Mensaje del emisor -->
