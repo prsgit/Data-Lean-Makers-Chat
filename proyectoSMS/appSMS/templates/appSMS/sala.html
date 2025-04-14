@@ -42,6 +42,8 @@
                   <a href="{% url 'appSMS:crear_grupo' %}" title="Crear Grupo">
                     <i class="fa-solid fa-user-group fa-xl icon icono"></i>
                   </a>
+                {% else %}
+                  <i class="fa-solid fa-user-group fa-xl icon icono cursor-not-allowed" title="Sin permiso para crear grupos"></i>
                 {% endif %}
               </div>
               <div class="ml-4 relative">
@@ -148,11 +150,18 @@
               <button id="back-to-contacts" class="mr-2 md:hidden text-gray-700 hover:text-gray-900">
                 <i class="fa-solid fa-chevron-left"></i>
               </button>
-              <a href="{% url 'appSMS:update_group_avatar' group_id=selected_group.id %}">
-                <img class="w-10 h-10 rounded-full" src="{{ selected_group.avatar.url }}" alt="group-avatar"
+              {% has_perm request.user "restringir" as cambiar_imagen_restringido %}
+              {% if not cambiar_imagen_restringido %}
+                <a href="{% url 'appSMS:update_group_avatar' group_id=selected_group.id %}">
+                  <img class="w-10 h-10 rounded-full" src="{{ selected_group.avatar.url }}" alt="group-avatar"
                   title="Cambiar imagen" style="cursor: pointer"
                   onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';" />
-              </a>
+                </a>
+              {% else %}
+                <img class="w-10 h-10 rounded-full cursor-not-allowed" src="{{ selected_group.avatar.url }}"
+                alt="group-avatar" title="Sin permiso para cambiar la imagen del grupo"
+                onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';" />
+              {% endif %}
               <div class="ml-2">
                 <p class="text-grey-darkest">{{ group_display_name }}</p>
 

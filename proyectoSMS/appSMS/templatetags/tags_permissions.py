@@ -10,7 +10,7 @@ def has_perm(context, user, code):
     Template tag unificado para permisos globales o de grupo.
 
     - Si `selected_group` está en el contexto, verifica permisos dentro del grupo.
-    - Si no, verifica permisos globales.
+    - Si no está en un grupo, verifica permisos globales.
     """
     group = context.get('selected_group')  # se usa automáticamente si existe
     if group:
