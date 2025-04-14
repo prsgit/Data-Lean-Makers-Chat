@@ -150,8 +150,8 @@
               <button id="back-to-contacts" class="mr-2 md:hidden text-gray-700 hover:text-gray-900">
                 <i class="fa-solid fa-chevron-left"></i>
               </button>
-              {% has_perm request.user "restringir" as cambiar_imagen_restringido %}
-              {% if not cambiar_imagen_restringido %}
+              {% has_perm request.user "restringir" as puede_cambiar_imagen %}
+              {% if not puede_cambiar_imagen %}
                 <a href="{% url 'appSMS:update_group_avatar' group_id=selected_group.id %}">
                   <img class="w-10 h-10 rounded-full" src="{{ selected_group.avatar.url }}" alt="group-avatar"
                   title="Cambiar imagen" style="cursor: pointer"
