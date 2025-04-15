@@ -1,5 +1,7 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.contrib.auth import get_user_model
 from .models import UserProfile, AllowedContacts, UserSystemRole, PermissionType, RolePermission, GroupMemberRole, GroupRolePermission, GroupChat
 
@@ -15,6 +17,21 @@ def create_user_profile(sender, instance, created, **kwargs):
         UserProfile.objects.create(user=instance)
         print(f"Perfil creado para el usuario: {instance.username}")
 
+
+
+# señal para cuando desactivamos a un usuario desde el panel del admin
+@receiver(post_save, sender=User)
+def desconectar_usuario(sender, instance, **kwargs):
+    if not instance.is_active:
+        channel_layer = get_channel_layer() # obtiene el canal para hablar con los websockets
+        async_to_sync(channel_layer.group_send)(
+            f"user_{instance.id}",
+            {
+                "type": "force_disconnect",
+                "message": " ⚠️ Su cuenta fue desactivada, contacte con el administrador del sistema"
+               
+            }
+        )
 
 
 # señal para mantener sincronizados los contactos de forma bidireccional
@@ -42,6 +59,7 @@ def sync_contacts_bidirectionally(sender, instance, action, reverse, **kwargs):
             # Si el usuario ya no está en la lista actual, elimina la relación inversa
             if user not in instance.allowed_users.all():
                 user.restricted_contacts.allowed_users.remove(instance.user)
+
 
 
 

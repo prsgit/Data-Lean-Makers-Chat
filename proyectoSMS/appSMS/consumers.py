@@ -37,6 +37,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
+
+        await self.channel_layer.group_add( 
+            f"user_{self.user.id}",
+            self.channel_name
+        )
+
         await self.accept()
         print(
             f"Usuario {self.user.username} conectado a la sala {self.room_group_name}")
@@ -253,3 +259,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             f.write(base64.b64decode(imgstr))
 
         return f"{folder}/{filename}"
+
+
+    async def force_disconnect(self, event):
+        """
+        Desconecta al usuario cuando se desactiva su cuenta desde el admin.
+        """
+        await self.send(text_data=json.dumps({
+            "type": "sistema",
+            "message": event.get("message", "Has sido desconectado.")
+    }))
+        await self.close()

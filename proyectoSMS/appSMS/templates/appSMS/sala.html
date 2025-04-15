@@ -149,7 +149,7 @@
               <!-- Mostrar nombre del grupo -->
               <button id="back-to-contacts" class="mr-2 md:hidden text-gray-700 hover:text-gray-900">
                 <i class="fa-solid fa-chevron-left"></i>
-              </button>
+    z          </button>
               {% has_perm request.user "restringir" as puede_cambiar_imagen %}
               {% if not puede_cambiar_imagen %}
                 <a href="{% url 'appSMS:update_group_avatar' group_id=selected_group.id %}">
