@@ -71,9 +71,8 @@
           <!-- Contactos -->
           <div class="bg-grey-lighter flex-1 overflow-auto">
             <!-- Lista de chats grupales -->
-            <div class="px-2 flex items-center bg-grey-light cursor-pointer">
-              <div class="ml-4 flex-1 py-3">
-
+            <div class="px-1 flex items-center bg-grey-light cursor-pointer">
+              <div class="ml-2 flex-1 py-3">
                 <ul class="list-unstyled chat-list mt-0 mb-0 space-y-2" id="group-list">
                   {% for group in groups %}
                   <li class="clearfix {% if group == selected_group %}active{% endif %}">
@@ -81,11 +80,16 @@
                       class="w-full cursor-pointer chat-link clearfix flex items-center space-x-4 hover:bg-gray-200 rounded-lg transition hover:no-underline focus:no-underline active:no-underline">
                       <img src="{{ group.avatar.url }}" class="h-12 w-12 rounded-full" alt="group-avatar"
                         onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';" />
-                      <div class="about w-full">
-                        <div class="name border-b border-grey-lighter pb-2 w-full">
-                          {{group.display_name|default:group.name }}</div>
+                      <div class="about w-full flex items-center justify-between">
+                        <div class="name border-b border-grey-lighter pb-2 w-full flex-1 min-w-0">
+                          {{group.display_name|default:group.name }}
+                        </div>
                       </div>
-
+                      {% if group.unread_count > 0 and group.name != selected_group.name %}
+                      <div id="contador-grupo-{{ group.name }}" class="flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs rounded-full ml-2">
+                        {{ group.unread_count }}
+                      </div>
+                      {% endif %}
                     </a>
                   </li>
                   {% empty %}
@@ -99,8 +103,8 @@
             </div>
 
             <!-- Lista de chats individuales -->
-            <div class="px-2 flex items-center bg-grey-light cursor-pointer">
-              <div class="ml-4 flex-1">
+            <div class="px-1 flex items-center bg-grey-light cursor-pointer">
+              <div class="ml-2 flex-1">
                 <ul class="list-unstyled chat-list space-y-2" id="user-list">
                   {% for user in users %}
                   <li class="clearfix {% if user == other_user %}active{% endif %}">
@@ -108,11 +112,15 @@
                       class="w-full cursor-pointer chat-link clearfix flex items-center space-x-4 hover:bg-gray-200 rounded-lg transition hover:no-underline focus:no-underline active:no-underline">
                       <img src="{{ user.userprofile.avatar.url }}" class="h-12 w-12 rounded-full" alt="avatar"
                         onerror="this.onerror=null; this.src='{{ MEDIA_URL }}avatars/default.png'" />
-                      <div class="about w-full">
-                        <div class="name pb-2 border-b border-grey-lighter">
+                      <div class="about w-full flex items-center justify-between">
+                        <div class="name pb-2 border-b border-grey-lighter flex-1 min-w-0">
                           {{ user.username }} {% if user.username == request.user.username %} (Tú){% endif %}
                         </div>
-
+                        {% if user.unread_count > 0 and user.username != other_user.username %}
+                        <div id="contador-{{ user.username }}" class="flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs rounded-full ml-2">
+                          {{ user.unread_count }}
+                        </div>
+                        {% endif %}
                       </div>
                     </a>
                   </li>
@@ -454,7 +462,7 @@
   const username = "{{ request.user.username }}"; //
   const roomName = "{{ room_name }}"; //
   const groupName = "{% if selected_group %}{{ selected_group.name }}{% endif %}";
-
+  const otherUsername = "{{ other_user.username }}";
 </script>
 <script src="{% static 'js/sala.js' %}"></script>
 <script src="{% static 'js/functions.js' %}"></script>

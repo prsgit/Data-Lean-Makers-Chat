@@ -6,7 +6,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth import get_user_model
 from channels.db import database_sync_to_async
 from django.conf import settings
-from .models import Message, GroupChat, GroupMessage
+from .models import GroupMessageReadStatus, Message, GroupChat, GroupMessage, MessageReadStatus
 from appSMS.utils import send_push_notification
 from appSMS.permissions import has_permission, get_anonymous_role, has_group_permission, get_anonymous_group_role
 
@@ -131,6 +131,35 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             print(
                 f"Mensaje enviado al grupo {self.room_name} por {sender.username}")
+            
+            # crea registros de lectura para todos los miembros del grupo (excepto el emisor)
+            members = await database_sync_to_async(list)( self.group.members.exclude(id=sender.id))         
+
+            for member in members:
+                await database_sync_to_async(GroupMessageReadStatus.objects.create)(
+                    user=member,
+                    message=message_instance,
+                    read=False
+                )
+
+            # cuenta el número de mensajes no leídos que tiene este miembro en este grupo
+            unread_count = await database_sync_to_async(
+                lambda: GroupMessageReadStatus.objects.filter(
+                    user=member,
+                    read=False,
+                    message__group=self.group
+                ).count()
+            )() # ejecuta la función anónima lambda
+
+            # enviar al usuario el nuevo contador de mensajes no leídos para actualizar su globito
+            await self.channel_layer.group_send(
+                f"user_{member.id}",  # canal individual del receptor
+                {
+                    'type': 'update_unread_group_count',
+                    'unread_count': unread_count,
+                    'group_name': self.group.name,
+                }
+            )
 
             members = await database_sync_to_async(list)(self.group.members.exclude(id=sender.id))
             for member in members:
@@ -174,6 +203,32 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             print(
                 f"Mensaje enviado al usuario {receiver.username} en la sala {self.room_name}")
+            
+            await database_sync_to_async(MessageReadStatus.objects.create)(
+                user=receiver,         # el usuario que tiene que leer el mensaje
+                message=message_instance,  # el mensaje que acaba de ser enviado
+                read=False             # estado inicial: no leído
+            )
+
+            # calcula el nuevo contador de mensajes no leídos para el receptor
+            unread_count = await database_sync_to_async(
+                lambda: MessageReadStatus.objects.filter(
+                    user=receiver,
+                    read=False,
+                    message__sender=sender
+                ).count()
+            )()
+
+            # envía el nuevo contador de mensajes no leídos al receptor
+            await self.channel_layer.group_send(
+                f"user_{receiver.id}",  # canal individual del receptor
+                {
+                    'type': 'update_unread_count',
+                    'unread_count': unread_count,
+                    'sender_username': sender.username,
+                }
+            )
+
 
             payload = {
                 "title": f"Mensaje de {sender.username}",
@@ -195,7 +250,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'sender_username': display_name, # muestra el alias
                 'sender_realname': sender.username, # muestra el nombre real
                 'file_url': file_url,
-                'message_id': message_instance.id
+                'message_id': message_instance.id,
+
             }
         )
 
@@ -270,3 +326,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "message": event.get("message", "Has sido desconectado.")
     }))
         await self.close()
+
+
+    async def update_unread_count(self, event):
+        unread_count = event['unread_count'] # extrae el número de mensajes por leer
+        sender_username = event['sender_username'] # extrae al usuario que envío el sms para ponerle el globito en la lista de usuarios del receptor
+
+        await self.send(text_data=json.dumps({
+            'type': 'update_unread_count',
+            'unread_count': unread_count,
+            'sender_username': sender_username,
+        }))
+
+
+    async def update_unread_group_count(self, event):
+        unread_count = event['unread_count']  # número de mensajes no leídos en el grupo
+        group_name = event['group_name']      # nombre del grupo
+
+    # Enviar al cliente WebSocket del usuario
+        await self.send(text_data=json.dumps({
+            'type': 'update_unread_group_count',
+            'unread_count': unread_count,
+            'group_name': group_name,
+        }))

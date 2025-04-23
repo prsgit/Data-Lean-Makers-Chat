@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django import forms
-from .models import UserSystemRole, UserRoleAssignment, PermissionType, RolePermission, AllowedContacts, Message, GroupChat, GroupMessage, GroupMemberRole, GroupRolePermission
+from .models import GroupMessageReadStatus, MessageReadStatus, UserSystemRole, UserRoleAssignment, PermissionType, RolePermission, AllowedContacts, Message, GroupChat, GroupMessage, GroupMemberRole, GroupRolePermission
 
 admin.site.site_header = "Chat Data Lean Makers"
 
@@ -138,3 +138,22 @@ class GroupMessageAdmin(admin.ModelAdmin):
 
 
 admin.site.register(GroupMessage, GroupMessageAdmin)
+
+
+
+# estado de los mensajes de chats individuales (leído o no leído)
+@admin.register(MessageReadStatus)
+class MessageReadStatusAdmin(admin.ModelAdmin):
+    list_display = ("user", "message", "read", "date_read")
+    list_filter = ("read",)
+    search_fields = ("user__username",)
+    ordering = ("read", "-date_read",) 
+
+
+# estado de los mensajes de chats grupos (leído o no leído)
+@admin.register(GroupMessageReadStatus)
+class GroupMessageReadStatusAdmin(admin.ModelAdmin):
+    list_display = ("user", "message", "read", "date_read")
+    list_filter = ("read",)
+    search_fields = ("user__username", "message__content")
+    ordering = ("read", "-date_read",) 

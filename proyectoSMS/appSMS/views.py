@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.http import JsonResponse
 from appSMS.permissions import get_visible_contacts, has_group_permission, has_permission
-from .models import Message, GroupChat, GroupMessage, PushSubscription, UserProfile
+from .models import GroupMessageReadStatus, Message, GroupChat, GroupMessage, PushSubscription, UserProfile,  MessageReadStatus
 from PIL import Image
 from django.utils.text import slugify
 from django.utils.timezone import now
@@ -183,6 +183,15 @@ def chat_privado(request, username=None):
     users = get_visible_contacts(request.user)
     groups = GroupChat.objects.filter(members=request.user)
 
+    for user in users:
+        unread_count = MessageReadStatus.objects.filter(
+            message__sender=user,
+            message__receiver=request.user,
+            read=False
+        ).count()
+        user.unread_count = unread_count
+
+
     # Convertir nombres de grupos a formato correcto
     for g in groups:
         g.display_name = g.name.replace('-', ' ').title()
@@ -204,7 +213,7 @@ def chat_privado(request, username=None):
             
         # verifica si el usuario tiene activado el permiso "escribir" en un grupo
         if has_permission(request.user, "escribir"):
-            messages = []  # no mostrar mensajes si el permiso escribir está bloqueado
+            messages =  Message.objects.none()    # no mostrar mensajes si el permiso escribir está bloqueado
         else:
             # Filtrar mensajes que no han sido eliminados por el usuario actual
             messages = Message.objects.filter(
@@ -216,6 +225,18 @@ def chat_privado(request, username=None):
             ).exclude(
             deleted_for_all=True
             ).order_by('timestamp')
+
+        if other_user:
+            # Marcar como leídos todos los mensajes recibidos de este usuario
+            MessageReadStatus.objects.filter(
+                user=request.user,
+                message__sender=other_user,
+                read=False
+            ).update(
+                read=True,
+                date_read = now()         
+            )
+
 
         if request.method == "POST":
             content = request.POST.get("content", "").strip()
@@ -245,6 +266,20 @@ def chat_privado(request, username=None):
         'groups': groups,
         'selected_group': None,
     })
+
+
+@csrf_exempt
+def marcar_mensaje_leido(request, message_id):
+    if request.method == "POST":
+        MessageReadStatus.objects.filter(
+            message_id=message_id,
+            user=request.user,
+            read=False
+        ).update(read=True, date_read=now())
+        return JsonResponse({"status": "ok"})
+    
+    return JsonResponse({"status": "error"}, status=400)
+
 
 # @login_required
 # def chat_privado(request, username=None):
@@ -344,8 +379,7 @@ def create_group(request):
 
         # Valida si el grupo ya existe usando el nombre normalizado
         if GroupChat.objects.filter(name=normalized_name).exists():
-            messages.error(
-                request, "El grupo ya existe, prueba con otro nombre")
+            messages.error(request, "El grupo ya existe, prueba con otro nombre")    
             return redirect('appSMS:crear_grupo')
 
         # Valida si el archivo subido es una imagen válida
@@ -376,8 +410,7 @@ def create_group(request):
 
     else:  # Si no es POST, asumimos que es GET
         # Usuarios disponibles para agregar al grupo (excluyendo al creador y al admin)
-        users = User.objects.exclude(
-            id=request.user.id).exclude(username='admin')
+        users = User.objects.exclude(id=request.user.id).exclude(username='admin')   
         return render(request, 'appSMS/create_group.html', {'users': users})
 
 
@@ -386,10 +419,31 @@ def create_group(request):
 def group_chat(request, group_name):
 
     group = get_object_or_404(GroupChat, name=slugify(group_name))
+
+    # Marcar como leídos todos los mensajes del grupo para el usuario actual
+    GroupMessageReadStatus.objects.filter(
+        user=request.user,
+        message__group=group,
+        read=False
+    ).update(
+        read=True, 
+        date_read=now()
+    )
+
+
     group_display_name = group.name.replace('-', ' ').title()
 
     users = get_visible_contacts(request.user)
     groups = GroupChat.objects.filter(members=request.user)
+
+    for g in groups: # recorremos cada grupo al que pertenece el usuario para calcular su contador de mensajes no leídos grupo por grupo
+        unread_count = GroupMessageReadStatus.objects.filter( # filtra los registros de lectura de ese grupo
+            user=request.user, # usuario actual
+            message__group=g, # grupo actual
+            read=False # estado de lectura
+        ).count()
+        g.unread_count = unread_count
+
 
     for g in groups:
         g.display_name = g.name.replace('-', ' ').title()
@@ -417,8 +471,8 @@ def group_chat(request, group_name):
                 file=file
             )
             # Usar response para evitar múltiples llamadas
-            response = redirect('appSMS:chat_grupal',
-                                group_name=slugify(group.name))
+            response = redirect('appSMS:chat_grupal', group_name=slugify(group.name))
+                               
             return response
 
     return render(request, 'appSMS/sala.html', {
@@ -429,6 +483,26 @@ def group_chat(request, group_name):
         'selected_group': group,
         'group_display_name': group_display_name
     })
+
+
+
+@csrf_exempt
+def marcar_mensaje_leido_grupo(request, group_name):
+    if request.method == "POST":
+        try:
+            group = GroupChat.objects.get(name=group_name)
+        except GroupChat.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Grupo no encontrado"}, status=404)
+
+        GroupMessageReadStatus.objects.filter(
+            user=request.user,
+            message__group=group,
+            read=False
+        ).update(read=True, date_read=now()) #marca como leídos todos los mensajes no leídos en ese grupo para ese usuario
+
+        return JsonResponse({"status": "ok"})
+
+    return JsonResponse({"status": "error", "message": "Método no permitido"}, status=400)
 
 
 # vaciado del chat individual completo

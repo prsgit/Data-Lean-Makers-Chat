@@ -126,13 +126,30 @@ class Message(models.Model):
     deleted_date = models.DateTimeField("Fecha de eliminación",null=True, blank=True)
 
     def __str__(self):
-        return f'{self.sender} to {self.receiver}: {self.content}'
+        return f'{self.sender} para {self.receiver}: {self.content}'
     
     class Meta:
         verbose_name = "Mensajes de los chat"
         verbose_name_plural = "Mensajes de los chats"
 
+
+
+class MessageReadStatus(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete= models.CASCADE, related_name="estados_lectura_mensajes", verbose_name= "Usuario")
+    message = models.ForeignKey(Message, on_delete= models.CASCADE, related_name="estados_lectura", verbose_name= "Mensaje")
+    read = models.BooleanField("Estado de lectura", default= False)
+    date_read = models.DateTimeField("Fecha y hora de lectura", null=True, blank=True)
+
+
+    def __str__(self):
+        return f"{self.user.username} - {self.message.id} - {'Leído' if self.read else 'No leído'}"
     
+    class Meta:
+        verbose_name = "Lectura mensajes de chats"
+        verbose_name_plural = "Lecturas mensajes de chats"
+
+    
+
 class GroupChat(models.Model):
     name = models.CharField("Nombre del Grupo",max_length=255, unique=True)  # Nombre del grupo
     creator = models.ForeignKey(  # el creador
@@ -207,7 +224,7 @@ class GroupMessage(models.Model):
     deleted_date = models.DateTimeField("Fecha de eliminación",null=True, blank=True)
 
     def __str__(self):
-        return f'{self.sender} to {self.group.name}: {self.content[:50]}'
+        return f'{self.sender} para {self.group.name}: {self.content[:50]}'
     
     class Meta:
         verbose_name = "Mensajes de grupos"
@@ -215,3 +232,15 @@ class GroupMessage(models.Model):
 
 
 
+class GroupMessageReadStatus(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="estados_lectura_mensajes_grupo", verbose_name="Usuario")
+    message = models.ForeignKey(GroupMessage, on_delete=models.CASCADE, related_name="estados_lectura", verbose_name="Mensaje de Grupo")
+    read = models.BooleanField("Estado de lectura", default=False)
+    date_read = models.DateTimeField("Fecha y hora de lectura", null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.message.id} - {'Leído' if self.read else 'No leído'}"
+
+    class Meta:
+        verbose_name = "Lectura mensajes de grupos"
+        verbose_name_plural = "Lecturas mensajes de grupos"
