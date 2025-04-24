@@ -190,6 +190,15 @@ def chat_privado(request, username=None):
             read=False
         ).count()
         user.unread_count = unread_count
+    
+    for g in groups: # recorremos cada grupo al que pertenece el usuario para calcular su contador de mensajes no leídos grupo por grupo
+        unread_count = GroupMessageReadStatus.objects.filter( # filtra los registros de lectura de ese grupo
+            user=request.user, # usuario actual
+            message__group=g, # grupo actual
+            read=False # estado de lectura
+        ).count()
+        g.unread_count = unread_count
+
 
 
     # Convertir nombres de grupos a formato correcto
@@ -443,6 +452,14 @@ def group_chat(request, group_name):
             read=False # estado de lectura
         ).count()
         g.unread_count = unread_count
+    
+    for user in users:
+        unread_count = MessageReadStatus.objects.filter(
+            message__sender=user,
+            message__receiver=request.user,
+            read=False
+        ).count()
+        user.unread_count = unread_count
 
 
     for g in groups:

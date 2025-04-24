@@ -272,20 +272,9 @@ chatSocket.onmessage = function (e) {
 
     if (typeof groupName !== "undefined" && groupName !== null && groupName !== "") {
       marcarGrupoComoLeido(groupName);
-    }
-
-    // if (
-    //   typeof groupName !== "undefined" &&
-    //   groupName === data.group_name && // Asegúrate de que esto venga del servidor
-    //   data.message_id
-    // ) {
-    //   marcarGrupoComoLeido(data.group_name);
-    // }
-    
-    
+    }    
   }
 
-  
 
   if (data.file_url && data.sender && data.sender_realname) {
     console.log("URL del archivo:", data.file_url); //  URL del archivo recibido
@@ -380,44 +369,6 @@ function actualizarGlobito(unread_count, username) {
     globito.style.display = "none";
   }
 }
-
-
-// function actualizarGlobito(unread_count, senderUsername) {
-//   if (!senderUsername) {
-//     console.warn("No se proporcionó el nombre del usuario para actualizar el globito.");
-//     return;
-//   }
-
-//    // si estoy en el chat con ese usuario, no mostrar globito
-//    if (typeof otherUsername !== "undefined" && otherUsername === senderUsername) {
-//     console.log("Estoy en el chat de", senderUsername, "- No mostrar globito.");
-//     return;
-//   }
-
-//   let globito = document.getElementById(`contador-${senderUsername}`);
-
-//   // Si el globito no existe, lo creamos
-//   if (!globito) {
-//     const userLink = document.querySelector(a[href$="/${senderUsername}/"] .about);
-//     if (userLink) {
-//       globito = document.createElement("div");
-//       globito.id = `contador-${senderUsername}`;
-//       globito.className = "flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs rounded-full ml-2";
-//       userLink.appendChild(globito);
-//     } else {
-//       console.warn("No se encontró el enlace para crear el globito del usuario:", senderUsername);
-//       return;
-//     }
-//   }
-
-//   if (unread_count > 0) {
-//     globito.textContent = unread_count;
-//     globito.style.display = "flex"; // Mostrar globito
-//   } else {
-//     globito.textContent = "";
-//     globito.style.display = "none"; // Ocultar globito
-//   }
-// }
 
 
 function marcarMensajeComoLeido(messageId) {
@@ -558,46 +509,5 @@ document.addEventListener("DOMContentLoaded", function () {
   if (chatLog) {
     chatLog.scrollTop = chatLog.scrollHeight;
   }
-
-
-    // detectar clic para quitar el globito de notificación al entrar al chat tanto individual como de grupo
-   const enlacesUsuarios = document.querySelectorAll(".chat-link");
-
-    enlacesUsuarios.forEach(function (enlace) {
-        enlace.addEventListener("click", function () {
-            // Obtener el username del enlace
-            const username = this.getAttribute("href").split("/").filter(Boolean).pop();
-
-            // Buscar el globito de ese usuario
-            let globito = document.getElementById(`contador-${username}`);
-
-             // Si no encuentra globito de usuario, buscar de grupo
-            if (!globito) {
-                globito = document.getElementById(`contador-grupo-${username}`);
-            }
-
-            if (globito) {
-                globito.style.display = "none"; // Ocultar globito
-            }
-        });
-    });
-
-
-   // detectar clic para quitar el globito de notificación al entrar al chat
-  //  const enlacesUsuarios = document.querySelectorAll(".chat-link");
-
-  //   enlacesUsuarios.forEach(function (enlace) {
-  //       enlace.addEventListener("click", function () {
-  //           // Obtener el username del enlace
-  //           const username = this.getAttribute("href").split("/").filter(Boolean).pop();
-
-  //           // Buscar el globito de ese usuario
-  //           const globito = document.getElementById(`contador-${username}`);
-
-  //           if (globito) {
-  //               globito.style.display = "none"; // Ocultar globito
-  //           }
-  //       });
-  //   });
 
 });
