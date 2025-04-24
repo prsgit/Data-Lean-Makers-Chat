@@ -161,10 +161,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+            if sender_alias:
+                display_name = sender_alias.split("_")[0]
+            else:
+                display_name = sender.username
+
             members = await database_sync_to_async(list)(self.group.members.exclude(id=sender.id))
             for member in members:
                 payload = {
-                    "title": f"Mensaje de {sender.username} en {self.group.name.replace('-', ' ').title()}",
+                    "title": f"Mensaje de {display_name} en el grupo {self.group.name.replace('-', ' ').title()}",
                     "body": message if message else "Has recibido un archivo.",
                     "icon": "/static/img/icon192.png",
                     "url": f"/chat/{self.group.name}/"
@@ -229,19 +234,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-
+            if sender_alias:
+                display_name = sender_alias.split("_")[0]
+            else:
+                display_name = sender.username
+                
             payload = {
-                "title": f"Mensaje de {sender.username}",
+                "title": f"Mensaje de {display_name}",
                 "body": message if message else "Has recibido un archivo.",
                 "icon": "/static/img/icon192.png",
                 "url": f"/chat/{sender.username}/"
             }
             await database_sync_to_async(send_push_notification)(receiver, payload)
 
-        if sender_alias:
-            display_name = sender_alias.split("_")[0]
-        else:
-            display_name = sender.username
+       
         await self.channel_layer.group_send(
             self.room_group_name,
             {
