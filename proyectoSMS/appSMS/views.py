@@ -177,8 +177,128 @@ def update_group_avatar(request, group_id):
 
 
 # Chat entre dos usuarios
+# @login_required
+# def chat_privado(request, username=None):
+    
+#     users = get_visible_contacts(request.user)
+#     groups = GroupChat.objects.filter(members=request.user)
+
+#     for user in users:
+#         unread_count = MessageReadStatus.objects.filter(
+#             message__sender=user,
+#             message__receiver=request.user,
+#             read=False
+#         ).count()
+#         user.unread_count = unread_count
+    
+#     for g in groups: # recorremos cada grupo al que pertenece el usuario para calcular su contador de mensajes no leídos grupo por grupo
+#         unread_count = GroupMessageReadStatus.objects.filter( # filtra los registros de lectura de ese grupo
+#             user=request.user, # usuario actual
+#             message__group=g, # grupo actual
+#             read=False # estado de lectura
+#         ).count()
+#         g.unread_count = unread_count
+
+
+
+#     # Convertir nombres de grupos a formato correcto
+#     for g in groups:
+#         g.display_name = g.name.replace('-', ' ').title()
+
+#     if username:
+#         try:
+#             other_user = User.objects.get(username=username)
+#         except User.DoesNotExist:
+#             return redirect('appSMS:login')
+
+#         # para se pueda chatear con uno mismo
+#         if username == request.user.username:
+#             room_name = f'private_chat_{request.user.id}_{request.user.id}'
+#         else:
+#             # ordena los ids de los usuarios
+#             user_ids = sorted([request.user.id, other_user.id])
+#             # crea el nombre de la sala de chat
+#             room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'
+            
+#         # verifica si el usuario tiene activado el permiso "escribir" en un grupo
+#         if has_permission(request.user, "escribir"):
+#             messages =  Message.objects.none()    # no mostrar mensajes si el permiso escribir está bloqueado
+#         else:
+#             # Filtrar mensajes que no han sido eliminados por el usuario actual
+#             messages = Message.objects.filter(
+#             room_name=room_name
+#             ).exclude(
+#             sender=request.user, sender_deleted=True
+#             ).exclude(
+#             receiver=request.user, receiver_deleted=True
+#             ).exclude(
+#             deleted_for_all=True
+#             ).order_by('timestamp')
+
+#         if other_user:
+#             # Marcar como leídos todos los mensajes recibidos de este usuario
+#             MessageReadStatus.objects.filter(
+#                 user=request.user,
+#                 message__sender=other_user,
+#                 read=False
+#             ).update(
+#                 read=True,
+#                 date_read = now()         
+#             )
+
+
+#         if request.method == "POST":
+#             content = request.POST.get("content", "").strip()
+#             file = request.FILES.get("file")
+#             if content or file:
+#                 Message.objects.create(
+#                     room_name=room_name,
+#                     sender=request.user,
+#                     receiver=other_user,
+#                     content=content,
+#                     file=file
+#                 )
+#                 response = redirect('appSMS:chat_privado', username=username)
+
+#                 return response
+
+#     else:
+#         other_user = None
+#         room_name = None
+#         messages = []
+
+#     return render(request, 'appSMS/sala.html', {
+#         'users': users,
+#         'other_user': other_user,
+#         'messages': messages,
+#         'room_name': room_name,
+#         'groups': groups,
+#         'selected_group': None,
+#     })
+
+
+@csrf_exempt
+def marcar_mensaje_leido(request, message_id):
+    if request.method == "POST":
+        MessageReadStatus.objects.filter(
+            message_id=message_id,
+            user=request.user,
+            read=False
+        ).update(read=True, date_read=now())
+        return JsonResponse({"status": "ok"})
+    
+    return JsonResponse({"status": "error"}, status=400)
+
+
+# prueba primer acceso
 @login_required
 def chat_privado(request, username=None):
+    # Obtener el valor de la sesión
+    primer_acceso = request.session.get('primer_acceso', False)
+    
+    # Limpiar la sesión después de usar
+    if primer_acceso:
+        request.session['primer_acceso'] = False
     
     users = get_visible_contacts(request.user)
     groups = GroupChat.objects.filter(members=request.user)
@@ -199,8 +319,6 @@ def chat_privado(request, username=None):
         ).count()
         g.unread_count = unread_count
 
-
-
     # Convertir nombres de grupos a formato correcto
     for g in groups:
         g.display_name = g.name.replace('-', ' ').title()
@@ -219,7 +337,7 @@ def chat_privado(request, username=None):
             user_ids = sorted([request.user.id, other_user.id])
             # crea el nombre de la sala de chat
             room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'
-            
+
         # verifica si el usuario tiene activado el permiso "escribir" en un grupo
         if has_permission(request.user, "escribir"):
             messages =  Message.objects.none()    # no mostrar mensajes si el permiso escribir está bloqueado
@@ -246,7 +364,6 @@ def chat_privado(request, username=None):
                 date_read = now()         
             )
 
-
         if request.method == "POST":
             content = request.POST.get("content", "").strip()
             file = request.FILES.get("file")
@@ -259,7 +376,6 @@ def chat_privado(request, username=None):
                     file=file
                 )
                 response = redirect('appSMS:chat_privado', username=username)
-
                 return response
 
     else:
@@ -274,93 +390,8 @@ def chat_privado(request, username=None):
         'room_name': room_name,
         'groups': groups,
         'selected_group': None,
+        'primer_acceso': primer_acceso  # Pasar el valor a la plantilla
     })
-
-
-@csrf_exempt
-def marcar_mensaje_leido(request, message_id):
-    if request.method == "POST":
-        MessageReadStatus.objects.filter(
-            message_id=message_id,
-            user=request.user,
-            read=False
-        ).update(read=True, date_read=now())
-        return JsonResponse({"status": "ok"})
-    
-    return JsonResponse({"status": "error"}, status=400)
-
-
-# @login_required
-# def chat_privado(request, username=None):
-#     # Obtener el valor de la sesión
-#     primer_acceso = request.session.get('primer_acceso', False)
-    
-#     # Limpiar la sesión después de usar
-#     if primer_acceso:
-#         request.session['primer_acceso'] = False
-    
-#     users = get_visible_contacts(request.user)
-#     groups = GroupChat.objects.filter(members=request.user)
-
-
-#     # Convertir nombres de grupos a formato correcto
-#     for g in groups:
-#         g.display_name = g.name.replace('-', ' ').title()
-
-#     if username:
-#         try:
-#             other_user = User.objects.get(username=username)
-#         except User.DoesNotExist:
-#             return redirect('appSMS:login')
-
-#         # para se pueda chatear con uno mismo
-#         if username == request.user.username:
-#             room_name = f'private_chat_{request.user.id}_{request.user.id}'
-#         else:
-#             # ordena los ids de los usuarios
-#             user_ids = sorted([request.user.id, other_user.id])
-#             # crea el nombre de la sala de chat
-#             room_name = f'private_chat_{user_ids[0]}_{user_ids[1]}'
-
-#         # Filtrar mensajes que no han sido eliminados por el usuario actual
-#         messages = Message.objects.filter(
-#             room_name=room_name
-#         ).exclude(
-#             sender=request.user, sender_deleted=True
-#         ).exclude(
-#             receiver=request.user, receiver_deleted=True
-#         ).exclude(
-#             deleted_for_all=True
-#         ).order_by('timestamp')
-
-#         if request.method == "POST":
-#             content = request.POST.get("content", "").strip()
-#             file = request.FILES.get("file")
-#             if content or file:
-#                 Message.objects.create(
-#                     room_name=room_name,
-#                     sender=request.user,
-#                     receiver=other_user,
-#                     content=content,
-#                     file=file
-#                 )
-#                 response = redirect('appSMS:chat_privado', username=username)
-#                 return response
-
-#     else:
-#         other_user = None
-#         room_name = None
-#         messages = []
-
-#     return render(request, 'appSMS/sala.html', {
-#         'users': users,
-#         'other_user': other_user,
-#         'messages': messages,
-#         'room_name': room_name,
-#         'groups': groups,
-#         'selected_group': None,
-#         'primer_acceso': primer_acceso  # Pasar el valor a la plantilla
-#     })
 
 @login_required
 def logout_view(request):

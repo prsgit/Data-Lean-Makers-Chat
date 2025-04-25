@@ -11,7 +11,7 @@
 <!-- component -->
 
 <div>
-  <div class="w-full h-32" style="background-color: #3B82F6"></div>
+  <div class="w-full h-32 bg-wasabi"></div>
 
   <div class="container mx-auto" style="margin-top: -128px;">
     <div class="py-6 h-screen">
@@ -40,7 +40,7 @@
                 {% has_perm request.user "restringir" as puede_crear_grupo %}
                 {% if not puede_crear_grupo %}
                   <a href="{% url 'appSMS:crear_grupo' %}" title="Crear Grupo">
-                    <i class="fa-solid fa-user-group fa-xl icon icono"></i>
+                    <i class="fa-solid fa-user-group fa-xl icon icono hover:text-wasabiIntenso transition duration-200"></i>
                   </a>
                 {% else %}
                   <i class="fa-solid fa-user-group fa-xl icon icono cursor-not-allowed" title="Sin permiso para crear grupos"></i>
@@ -64,7 +64,7 @@
 
           <!-- Search -->
           <div class="py-2 px-2 bg-grey-lightest">
-            <input type="text" id="search-input" class="form-control w-full px-2 py-2 text-sm"
+            <input type="text" id="search-input" class="form-control w-full px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-wasabiIntenso"
               placeholder="Buscar usuario o grupo..." />
           </div>
 
@@ -77,7 +77,7 @@
                   {% for group in groups %}
                   <li class="clearfix {% if group == selected_group %}active{% endif %}">
                     <a href="{% url 'appSMS:chat_grupal' group_name=group.name %}"
-                      class="w-full cursor-pointer chat-link clearfix flex items-center space-x-4 hover:bg-gray-200 rounded-lg transition hover:no-underline focus:no-underline active:no-underline">
+                      class="w-full cursor-pointer chat-link clearfix flex items-center space-x-4 hover:bg-gray-200 rounded-lg transition duration-200 hover:no-underline focus:no-underline active:no-underline">
                       <img src="{{ group.avatar.url }}" class="h-12 w-12 rounded-full" alt="group-avatar"
                         onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';" />
                       <div class="about w-full flex items-center justify-between">
@@ -109,7 +109,7 @@
                   {% for user in users %}
                   <li class="clearfix {% if user == other_user %}active{% endif %}">
                     <a href="{% url 'appSMS:chat_privado' username=user.username %}"
-                      class="w-full cursor-pointer chat-link clearfix flex items-center space-x-4 hover:bg-gray-200 rounded-lg transition hover:no-underline focus:no-underline active:no-underline">
+                      class="w-full cursor-pointer chat-link clearfix flex items-center space-x-4 hover:bg-gray-200 rounded-lg transition duration-200 hover:no-underline focus:no-underline active:no-underline">
                       <img src="{{ user.userprofile.avatar.url }}" class="h-12 w-12 rounded-full" alt="avatar"
                         onerror="this.onerror=null; this.src='{{ MEDIA_URL }}avatars/default.png'" />
                       <div class="about w-full flex items-center justify-between">
@@ -139,13 +139,13 @@
         <input type="hidden" id="primer-acceso-value" value="{{ primer_acceso }}">
         {% if primer_acceso %}
         <!-- Mostrar la vista completa -->
-    <div class="vista-completa">
-      <!-- Aquí deberías mostrar todo el contenido normal del chat -->
-      <!-- Chat -->
-      <div id="chat-block" class="hidden md:flex w-full md:w-2/3 border flex-col">
+        <div class="vista-completa">
+          <!-- Aquí deberías mostrar todo el contenido normal del chat -->
+          <!-- Chat -->
+          <div id="chat-block" class="hidden md:flex w-full md:w-2/3 border flex-col">
           <!-- Resto del contenido del chat que ya tienes -->
-      </div>
-  </div>
+          </div>
+        </div>
         {% else %}
         <!-- Chat -->
         <div id="chat-block" class="hidden md:flex w-full md:w-2/3 border flex-col">
@@ -226,7 +226,7 @@
                       <!-- Botones de acción -->
                       <div class="flex justify-end mt-4">
                         <button id="close-group-modal"
-                          class="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md px-2 py-2 mr-2">
+                          class="bg-wasabi hover:bg-wasabiIntenso text-white font-medium rounded-md px-2 py-2 mr-2">
                           Cancelar
                         </button>
                         <button id="confirm-delete-group"
@@ -251,7 +251,7 @@
                       <!-- Botones de acción -->
                       <div class="flex justify-end mt-4">
                         <button id="close-modal"
-                          class="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md px-2 py-2 mr-2">
+                          class="bg-wasabi hover:bg-wasabiIntenso text-white font-medium rounded-md px-2 py-2 mr-2">
                           Cancelar
                         </button>
                         <button id="confirm-delete"
@@ -397,7 +397,7 @@
               {% has_perm request.user "leer" as solo_lectura %}
               {% if not solo_lectura %}
                 <button id="chat-file-button"
-                class="p-2 text-gray-400 hover:text-gray-700 transition duration-200 focus:outline-none">
+                class="p-2 text-gray-400 hover:text-wasabiIntenso transition duration-200 focus:outline-none">
                   <i class="fa-solid fa-paperclip text-lg"></i>
                 </button>
               {% endif %}
@@ -411,7 +411,7 @@
               </div>
             {% else %}
               <div class="flex-1 mx-2">
-                <input id="chat-message-input" class="form-control w-full border rounded px-2 py-2" type="text"
+                <input id="chat-message-input" class="form-control w-full border rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-wasabiIntenso" type="text"
                 name="content" placeholder="Escribe un mensaje..." autocomplete="off" />
               </div>
             {% endif %}
@@ -419,7 +419,7 @@
               {% has_perm request.user "leer" as solo_lectura %}
               {% if not solo_lectura %}
                 <button id="chat-message-submit" type="button"
-                class="p-2 text-white bg-blue-500 hover:bg-blue-600 rounded-xl transition duration-200 focus:outline-none">
+                class="p-2 text-white bg-wasabi hover:bg-wasabiIntenso rounded-xl transition duration-200 focus:outline-none">
                   <i class=" fa-solid fa-paper-plane text-lg"></i>
                 </button>
               {% endif %}  
@@ -445,7 +445,7 @@
     <!-- Botones de acción -->
     <div class="flex justify-end mt-4">
       <button id="message-close-modal"
-        class="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md px-2 py-2 mr-2">
+        class="bg-wasabi hover:bg-wasabiIntenso text-white font-medium rounded-md px-2 py-2 mr-2">
         Cancelar
       </button>
       <button id="message-confirm-delete"

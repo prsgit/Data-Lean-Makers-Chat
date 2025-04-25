@@ -9,6 +9,11 @@ module.exports = {
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui"],
       },
+      colors: {
+        wasabi:'#B5BE04',
+        wasabiIntenso:'#CFE401',
+        wasabiClaro:'#D9D6A5',
+      }
     },
   },
   plugins: [],

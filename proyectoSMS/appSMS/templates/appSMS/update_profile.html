@@ -45,7 +45,7 @@
       <!-- Botón de actualizar -->
       <div class="flex justify-center items-center">
         <button type="submit"
-          class="px-3 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-300 w-auto text-center">
+          class="px-3 py-2 bg-wasabi text-white rounded-lg shadow hover:bg-wasabiIntenso transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 w-auto text-center">
           Actualizar
         </button>
       </div>
@@ -54,7 +54,7 @@
     <!-- Enlace para volver -->
     <p class="mt-4 text-center text-sm sm:text-base">
       <span>¿No deseas cambiar tu imagen?</span>
-      <a href="{% url 'appSMS:chat_privado' username=request.user.username %}" class="text-blue-500 hover:underline">
+      <a href="{% url 'appSMS:chat_privado' username=request.user.username %}" class="text-wasabi hover:text-wasabiIntenso hover:underline transition duration-200">
         Volver
       </a>
     </p>

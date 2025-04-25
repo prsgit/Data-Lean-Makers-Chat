@@ -433,7 +433,7 @@ function marcarGrupoComoLeido(groupName) {
 // }
 // Manejo del envio
 document.addEventListener("DOMContentLoaded", function () {
-  // // Verificar si hay un valor de primer acceso en localStorage
+  // Verificar si hay un valor de primer acceso en localStorage
   // const primer_acceso = localStorage.getItem("primer_acceso");
     
   // // Si no existe en localStorage, usar el valor del servidor
