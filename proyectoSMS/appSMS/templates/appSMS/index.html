@@ -25,82 +25,163 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
   <script>
-    if ("serviceWorker" in navigator && "PushManager" in window) {
-      // Registrar el Service Worker
-      navigator.serviceWorker
-        .register("/serviceworker.js")
-        .then(function (registration) {
-          console.log("Service Worker registrado con éxito:", registration);
+      if ("serviceWorker" in navigator && "PushManager" in window) {
+  navigator.serviceWorker
+    .register("/serviceworker.js")
+    .then(function (registration) {
+      console.log("Service Worker registrado con éxito:", registration);
 
-          // Verificar si ya existe una suscripción activa
-          registration.pushManager
-            .getSubscription()
-            .then(function (subscription) {
-              if (subscription) {
-                // Reutilizar la suscripción existente
-                console.log(
-                  "Suscripción existente encontrada:",
-                  subscription
-                );
-                return sendSubscriptionToServer(subscription); // Enviar al servidor
-              } else {
-                // Crear una nueva suscripción si no existe
-                return subscribeUser(registration);
-              }
-            })
-            .catch(function (error) {
-              console.error("Error al manejar la suscripción:", error);
-            });
-        })
-        .catch(function (error) {
-          console.error("Error al registrar el Service Worker:", error);
-        });
-    } else {
-      console.warn(
-        "Service Workers o Push Notifications no son soportados en este navegador."
-      );
-    }
-
-    // Función para suscribirse al servicio de notificaciones
-    function subscribeUser(registration) {
-      return registration.pushManager
-        .subscribe({
-          userVisibleOnly: true, // Garantiza que las notificaciones sean visibles
-          applicationServerKey:
-            "BOD39SOXtP86aeg7CFH_PWHnl4JIsdtqLdftSyfwMOtDEf2FqROAxoqXqffXk6DP8UI2oKeIrHF2vi_jcBfu1zU",
-        })
+      registration.pushManager
+        .getSubscription()
         .then(function (subscription) {
-          console.log("Nueva suscripción creada:", subscription);
-          return sendSubscriptionToServer(subscription); // Enviar al servidor
-        })
-        .catch(function (error) {
-          console.error("Error al suscribirse:", error);
-        });
-    }
+          if (subscription) {
+            console.log("Suscripción existente encontrada:", subscription);
 
-    // Función para enviar la suscripción al servidor
-    function sendSubscriptionToServer(subscription) {
-      return fetch("/save-subscription/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(subscription),
-      })
-        .then(function (response) {
-          if (response.ok) {
-            console.log("Suscripción enviada al servidor con éxito.");
+            // cancelar siempre la vieja para asegurar la suscripción
+            subscription.unsubscribe().then(function (successful) {
+              console.log("Suscripción vieja eliminada:", successful);
+              return subscribeUser(registration); // Crear nueva
+            }).catch(function (error) {
+              console.error("Error al eliminar la suscripción vieja:", error);
+              // Igual intentar suscribirse de nuevo
+              return subscribeUser(registration);
+            });
+
           } else {
-            console.error("Error al enviar la suscripción al servidor.");
+            // No existe, crear nueva
+            return subscribeUser(registration);
           }
         })
         .catch(function (error) {
-          console.error("Error al enviar la suscripción:", error);
+          console.error("Error al manejar la suscripción:", error);
         });
+    })
+    .catch(function (error) {
+      console.error("Error al registrar el Service Worker:", error);
+    });
+} else {
+  console.warn("Service Workers o Push Notifications no son soportados en este navegador.");
+}
+
+function subscribeUser(registration) {
+  return registration.pushManager
+    .subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: "BOD39SOXtP86aeg7CFH_PWHnl4JIsdtqLdftSyfwMOtDEf2FqROAxoqXqffXk6DP8UI2oKeIrHF2vi_jcBfu1zU",
+    })
+    .then(function (subscription) {
+      console.log("Nueva suscripción creada:", subscription);
+      return sendSubscriptionToServer(subscription); // Enviar al servidor
+    })
+    .catch(function (error) {
+      console.error("Error al suscribirse:", error);
+    });
+}
+
+function sendSubscriptionToServer(subscription) {
+  return fetch("/save-subscription/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(subscription),
+  })
+  .then(function (response) {
+    if (response.ok) {
+      console.log("Suscripción enviada al servidor con éxito.");
+    } else {
+      console.error("Error al enviar la suscripción al servidor.");
     }
+  })
+  .catch(function (error) {
+    console.error("Error al enviar la suscripción:", error);
+  });
+}
   </script>
 
   {% block extra_js %}{% endblock %}
 </body>
 
 </html>
+
+
+
+
+
+<!-- antigua -->
+
+<!-- <script>
+  if ("serviceWorker" in navigator && "PushManager" in window) {
+    // Registrar el Service Worker
+    navigator.serviceWorker
+      .register("/serviceworker.js")
+      .then(function (registration) {
+        console.log("Service Worker registrado con éxito:", registration);
+
+        // Verificar si ya existe una suscripción activa
+        registration.pushManager
+          .getSubscription()
+          .then(function (subscription) {
+            if (subscription) {
+              // Reutilizar la suscripción existente
+              console.log(
+                "Suscripción existente encontrada:",
+                subscription
+              );
+              return sendSubscriptionToServer(subscription); // Enviar al servidor
+            } else {
+              // Crear una nueva suscripción si no existe
+              return subscribeUser(registration);
+            }
+          })
+          .catch(function (error) {
+            console.error("Error al manejar la suscripción:", error);
+          });
+      })
+      .catch(function (error) {
+        console.error("Error al registrar el Service Worker:", error);
+      });
+  } else {
+    console.warn(
+      "Service Workers o Push Notifications no son soportados en este navegador."
+    );
+  }
+
+  // Función para suscribirse al servicio de notificaciones
+  function subscribeUser(registration) {
+    return registration.pushManager
+      .subscribe({
+        userVisibleOnly: true, // Garantiza que las notificaciones sean visibles
+        applicationServerKey:
+          "BOD39SOXtP86aeg7CFH_PWHnl4JIsdtqLdftSyfwMOtDEf2FqROAxoqXqffXk6DP8UI2oKeIrHF2vi_jcBfu1zU",
+      })
+      .then(function (subscription) {
+        console.log("Nueva suscripción creada:", subscription);
+        return sendSubscriptionToServer(subscription); // Enviar al servidor
+      })
+      .catch(function (error) {
+        console.error("Error al suscribirse:", error);
+      });
+  }
+
+  // Función para enviar la suscripción al servidor
+  function sendSubscriptionToServer(subscription) {
+    return fetch("/save-subscription/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(subscription),
+    })
+      .then(function (response) {
+        if (response.ok) {
+          console.log("Suscripción enviada al servidor con éxito.");
+        } else {
+          console.error("Error al enviar la suscripción al servidor.");
+        }
+      })
+      .catch(function (error) {
+        console.error("Error al enviar la suscripción:", error);
+      });
+  }
+</script> -->

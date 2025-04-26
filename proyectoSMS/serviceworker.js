@@ -3,7 +3,7 @@
 var staticCacheName = "django-pwa-v" + new Date().getTime();
 var filesToCache = [
   "/offline/",
-  "/static/img/home.jpg",
+  "/static/img/home.png",
 ];
 
 // Cache on install
@@ -54,8 +54,8 @@ self.addEventListener("push", function (event) {
   const title = data.title || "Notificación";
   const options = {
     body: data.body || "Tienes una nueva notificación.",
-    icon: data.icon || "/static/img/icon192.png", // Ruta del icono de la notificación
-    badge: data.badge || "/static/img/icon192.png", // Ruta del badge de la notificación
+    icon: data.icon || "/static/img/icono_app.png", // Ruta del icono de la notificación
+    badge: data.badge || "/static/img/icono_app.png", // Ruta del badge de la notificación
     data: {
       url:
         data.url ||

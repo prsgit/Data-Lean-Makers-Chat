@@ -66,7 +66,7 @@ function appendMessage(sender, message, isMyMessage, messageId) {
     const messageHTML = `
      <div id="message-${messageId}" class="flex justify-end mb-2 items-center space-x-2">
         <!-- Contenedor del mensaje -->
-        <div class="rounded-xl py-2 px-3 bg-indigo-200 max-w-xs">
+        <div class="rounded-xl py-2 px-3 max-w-xs bg-wasabiClaro">
             <p class="text-sm mt-1">${message}</p>
             <p class="text-right text-xs text-gray-500 mt-1">${timeString}</p>
         </div>
@@ -171,7 +171,8 @@ function appendFile(sender, fileUrl, isMyMessage, messageId) {
     const messageHTML = `
       <div id="message-${messageId}" class="flex justify-end mb-2 items-center space-x-2">
                 <!-- Contenedor del mensaje -->
-                <div class="rounded-xl py-2 px-3 bg-indigo-200 max-w-xs">
+        <div class="rounded-xl py-2 px-3 max-w-xs bg-wasabiClaro">
+                <div class="rounded-xl py-2 px-3 max-w-xs ">
                     <div class="text-sm mt-1">${fileContent}</div>
                     <p class="text-right text-xs text-gray-500 mt-1">${timeString}</p>
                 </div>
@@ -352,7 +353,7 @@ function actualizarGlobito(unread_count, username) {
                       || (typeof groupName !== "undefined" && groupName === username);
       globito.id = esGrupo ? `contador-grupo-${username}` : `contador-${username}`;
 
-      globito.className = "flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs rounded-full ml-2";
+      globito.className = "px-1 py-0.5 bg-red-500 min-w-5 rounded-full font-bold text-center text-white text-xs absolute -top-2 -end-1 translate-x-1/4 text-nowrap";
       userLink.appendChild(globito);
     } else {
       console.warn("No se encontró enlace para colocar el globito de:", username);

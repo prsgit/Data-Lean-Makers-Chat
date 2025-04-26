@@ -5,15 +5,15 @@
 
 {% block content %}
 <div class="h-screen flex justify-center items-center bg-cover bg-center relative px-4"
-  style="background-image: url('/static/img/home.jpg')">
+  style="background-image: url('/static/img/home.png')">
   <!-- Overlay con opacidad -->
-  <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+  <div class="absolute inset-0"></div>
 
   <!-- Contenedor del perfil -->
   <div
     class="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-md bg-white shadow-lg rounded-lg p-4 sm:p-6 md:p-8 lg:p-6">
     <h2
-      class="text-xl sm:text-2xl md:text-3xl lg:text-2xl font-bold text-center mb-4 sm:mb-6 md:mb-8 lg:mb-6 text-gray-700">
+      class="text-xl sm:text-2xl md:text-3xl lg:text-2xl font-bold text-center mb-4 sm:mb-6 md:mb-8 lg:mb-6 text-wasabi">
       Perfil de Usuario
     </h2>
 
@@ -52,7 +52,7 @@
     </form>
 
     <!-- Enlace para volver -->
-    <p class="mt-4 text-center text-sm sm:text-base">
+    <p class="mt-4 text-center text-sm sm:text-base text-gray-500">
       <span>¿No deseas cambiar tu imagen?</span>
       <a href="{% url 'appSMS:chat_privado' username=request.user.username %}" class="text-wasabi hover:text-wasabiIntenso hover:underline transition duration-200">
         Volver

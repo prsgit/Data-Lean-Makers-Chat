@@ -78,18 +78,23 @@
                   <li class="clearfix {% if group == selected_group %}active{% endif %}">
                     <a href="{% url 'appSMS:chat_grupal' group_name=group.name %}"
                       class="w-full cursor-pointer chat-link clearfix flex items-center space-x-4 hover:bg-gray-200 rounded-lg transition duration-200 hover:no-underline focus:no-underline active:no-underline">
-                      <img src="{{ group.avatar.url }}" class="h-12 w-12 rounded-full" alt="group-avatar"
-                        onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';" />
-                      <div class="about w-full flex items-center justify-between">
+                      <div class="about relative w-12 h-12">
+                        <img src="{{ group.avatar.url }}" class="h-10 w-10 rounded-full" alt="group-avatar"
+                          onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';" />
+                          {% if group.unread_count > 0 and group.name != selected_group.name %}
+                          <div class="px-1 py-0.5 bg-red-500 min-w-5 rounded-full font-bold text-center text-white text-xs absolute -top-2 -end-1 translate-x-1/4 text-nowrap">
+                          
+                            <div id="contador-grupo-{{ group.name }}">
+                              {{ group.unread_count }}
+                            </div>
+                          </div>
+                        {% endif %}
+                      </div>
+                      <div class="w-full flex items-center justify-between">
                         <div class="name border-b border-grey-lighter pb-2 w-full flex-1 min-w-0">
                           {{group.display_name|default:group.name }}
                         </div>
                       </div>
-                      {% if group.unread_count > 0 and group.name != selected_group.name %}
-                      <div id="contador-grupo-{{ group.name }}" class="flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs rounded-full ml-2">
-                        {{ group.unread_count }}
-                      </div>
-                      {% endif %}
                     </a>
                   </li>
                   {% empty %}
@@ -110,17 +115,22 @@
                   <li class="clearfix {% if user == other_user %}active{% endif %}">
                     <a href="{% url 'appSMS:chat_privado' username=user.username %}"
                       class="w-full cursor-pointer chat-link clearfix flex items-center space-x-4 hover:bg-gray-200 rounded-lg transition duration-200 hover:no-underline focus:no-underline active:no-underline">
-                      <img src="{{ user.userprofile.avatar.url }}" class="h-12 w-12 rounded-full" alt="avatar"
-                        onerror="this.onerror=null; this.src='{{ MEDIA_URL }}avatars/default.png'" />
-                      <div class="about w-full flex items-center justify-between">
-                        <div class="name pb-2 border-b border-grey-lighter flex-1 min-w-0">
+                      <div class="about relative w-12 h-12">
+                        <img src="{{ user.userprofile.avatar.url }}" class="h-10 w-10 rounded-full" alt="avatar"
+                            onerror="this.onerror=null; this.src='{{ MEDIA_URL }}avatars/default.png'" />
+                            {% if user.unread_count > 0 and user.username != other_user.username %}
+                          <div  class="px-1 py-0.5 bg-red-500 min-w-5 rounded-full font-bold text-center text-white text-xs absolute -top-2 -end-1 translate-x-1/4 text-nowrap">
+                          
+                            <div id="contador-{{ user.username }}">
+                            {{ user.unread_count }}
+                            </div>
+                          </div>
+                        {% endif %}
+                      </div>
+                      <div class="w-full flex items-center justify-between">
+                        <div class="name border-b border-grey-lighter pb-2 w-full flex-1 min-w-0">
                           {{ user.username }} {% if user.username == request.user.username %} (Tú){% endif %}
                         </div>
-                        {% if user.unread_count > 0 and user.username != other_user.username %}
-                        <div id="contador-{{ user.username }}" class="flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs rounded-full ml-2">
-                          {{ user.unread_count }}
-                        </div>
-                        {% endif %}
                       </div>
                     </a>
                   </li>
@@ -136,17 +146,17 @@
         </div>
 
         <!-- Valor oculto para el primer acceso -->
-        <input type="hidden" id="primer-acceso-value" value="{{ primer_acceso }}">
-        {% if primer_acceso %}
+        <!-- <input type="hidden" id="primer-acceso-value" value="{{ primer_acceso }}"> -->
+        <!-- {% if primer_acceso %} -->
         <!-- Mostrar la vista completa -->
-        <div class="vista-completa">
+        <!-- <div class="vista-completa"> -->
           <!-- Aquí deberías mostrar todo el contenido normal del chat -->
           <!-- Chat -->
-          <div id="chat-block" class="hidden md:flex w-full md:w-2/3 border flex-col">
+          <!-- <div id="chat-block" class="hidden md:flex w-full md:w-2/3 border flex-col"> -->
           <!-- Resto del contenido del chat que ya tienes -->
-          </div>
-        </div>
-        {% else %}
+          <!-- </div> -->
+        <!-- </div> -->
+        <!-- {% else %} -->
         <!-- Chat -->
         <div id="chat-block" class="hidden md:flex w-full md:w-2/3 border flex-col">
 
@@ -157,7 +167,7 @@
               <!-- Mostrar nombre del grupo -->
               <button id="back-to-contacts" class="mr-2 md:hidden text-gray-700 hover:text-gray-900">
                 <i class="fa-solid fa-chevron-left"></i>
-    z          </button>
+              </button>
               {% has_perm request.user "restringir" as puede_cambiar_imagen %}
               {% if not puede_cambiar_imagen %}
                 <a href="{% url 'appSMS:update_group_avatar' group_id=selected_group.id %}">
@@ -276,7 +286,7 @@
                 <!-- Mensaje del emisor -->
                 <div id="message-{{ message.id }}" class="flex justify-end mb-2 items-center space-x-2">
                   <!-- Contenedor del mensaje -->
-                  <div class="rounded-xl py-2 px-3 bg-indigo-200 max-w-xs">
+                  <div class="rounded-xl py-2 px-3 bg-wasabiClaro max-w-xs">
                     <p class="text-sm mt-1">
                       {{ message.content }}
                     </p>

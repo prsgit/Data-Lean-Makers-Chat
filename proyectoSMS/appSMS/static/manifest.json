@@ -1,5 +1,5 @@
 {
-  "name": "Chat",
+  "name": "Wasabi",
   "description": "App de mensajería en tiempo real",
   "start_url": "/",
   "display": "standalone",
@@ -7,27 +7,17 @@
   "background_color": "#FFFFFF",
   "icons": [
     {
-      "src": "/static/img/icon192.png",
+      "src": "/static/img/icono_app_192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/static/img/icon512.png",
+      "src": "/static/img/icono_app_512.png",
       "sizes": "512x512",
-      "type": "image/png"
-    }
-  ],
-
-  "icons_apple": [
-    {
-      "src": "/static/img/icon192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/static/img/icon512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
+
 }

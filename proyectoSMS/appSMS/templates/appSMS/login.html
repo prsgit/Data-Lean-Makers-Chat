@@ -1,24 +1,18 @@
-{% extends 'appSMS/index.html' %}
-{% load static %}
-
-{% block title %}Iniciar Sesión{% endblock %}
-
-{% block extra_css %}
+{% extends 'appSMS/index.html' %} {% load static %} {% block title %}Iniciar
+Sesión{% endblock %} {% block extra_css %}
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap");
 
   html {
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
   }
 </style>
-{% endblock %}
-
-{% block content %}
-<div class="h-screen bg-cover bg-center" style="background-image: url('/static/img/home.jpg')">
-  <div class="h-full w-full bg-black bg-opacity-50 flex items-center justify-center">
+{% endblock %} {% block content %}
+<div class="h-screen bg-cover bg-center" style="background-image: url('/static/img/home.png')">
+  <div class="h-full w-full flex items-center justify-center">
     <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-10">
-      <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 text-center">
+      <h2 class="text-2xl md:text-3xl font-bold text-wasabi mb-4 text-center">
         Wasabi
       </h2>
       {% if form.errors %}
@@ -29,17 +23,30 @@
       <form method="post" class="space-y-4">
         {% csrf_token %}
         <div>
-          <label for="username" class="block text-gray-700 font-medium mb-1">Usuario</label>
-          <input type="text" name="username" id="username"
-            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-wasabiIntenso" required />
+          <label for="username" class="block text-wasabi font-medium mb-1" >
+            Usuario
+          </label>  
+          <input
+            type="text"
+            name="username"
+            id="username"
+            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-wasabiIntenso"
+            required
+          />
         </div>
         <div>
-          <label for="password" class="block text-gray-700 font-medium mb-1">Contraseña</label>
-          <input type="password" name="password" id="password"
-            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-wasabiIntenso" required />
+          <label for="password" class="block text-wasabi font-medium mb-1">
+            Contraseña
+          </label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-wasabiIntenso"
+            required
+          />
         </div>
-        <button type="submit"
-          class="w-full py-2 bg-wasabi text-white rounded-lg text-lg font-medium hover:bg-wasabiIntenso transition">
+        <button type="submit" class="w-full py-2 bg-wasabi text-white rounded-lg text-lg font-medium hover:bg-wasabiIntenso transition" >
           Acceder
         </button>
       </form>
