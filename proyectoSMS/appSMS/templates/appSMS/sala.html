@@ -287,7 +287,7 @@
                 <div id="message-{{ message.id }}" class="flex justify-end mb-2 items-center space-x-2">
                   <!-- Contenedor del mensaje -->
                   <div class="rounded-xl py-2 px-3 bg-wasabiClaro max-w-xs">
-                    <p class="text-sm mt-1">
+                    <p class="text-sm mt-1 text-gray-600">
                       {{ message.content }}
                     </p>
                     {% if message.file %}
@@ -315,7 +315,7 @@
                       {% endif %}
                     </div>
                     {% endif %}
-                    <p class="text-right text-xs text-gray-500 mt-1">
+                    <p class="text-right text-xs text-gray-400 mt-1">
                       {{ message.timestamp|date:"H:i A" }}
                     </p>
                   </div>
@@ -353,14 +353,14 @@
                 <div id="message-{{ message.id }}" class="flex items-center mb-2 space-x-2">
                   <!-- Contenedor del mensaje -->
                   <div class="rounded-xl py-2 px-3 bg-white max-w-xs">
-                    <p class="text-sm font-bold text-gray-500">
+                    <p class="text-sm font-bold text-gray-700">
                       {% if message.sender_alias %}
                         {{ message.sender_alias|alias_prefix }}
                       {% else %}
                         {{ message.sender.username }}
                       {% endif %}
                     </p>
-                    <p class="text-sm mt-1">
+                    <p class="text-sm mt-1 text-gray-600">
                       {{ message.content }}
                     </p>
                     {% if message.file %}
@@ -388,7 +388,7 @@
                       {% endif %}
                     </div>
                     {% endif %}
-                    <p class="text-right text-xs text-gray-500 mt-1">
+                    <p class="text-right text-xs text-gray-400 mt-1">
                       {{ message.timestamp|date:"H:i A" }}
                     </p>
                   </div>

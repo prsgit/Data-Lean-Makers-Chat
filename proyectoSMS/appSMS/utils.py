@@ -1,22 +1,16 @@
 from pywebpush import webpush, WebPushException
+from django.db import DatabaseError
 import json
 from django.conf import settings
 from appSMS.models import PushSubscription
 
 
+
 def send_push_notification(user, payload):
-    """
-    Envía una notificación push a un usuario específico.
+    subscriptions = PushSubscription.objects.filter(user=user)
 
-    :param user: Usuario destinatario de la notificación.
-    :param payload: Diccionario con los datos de la notificación (title, body, icon, url).
-    """
-    # Buscar la suscripción push del usuario
-    subscription = PushSubscription.objects.filter(user=user).first()
-
-    if subscription:
+    for subscription in subscriptions:
         try:
-            # Enviar la notificación usando pywebpush
             webpush(
                 subscription_info={
                     "endpoint": subscription.endpoint,
@@ -31,9 +25,13 @@ def send_push_notification(user, payload):
                     "sub": "mailto:pedrorueda.develop@gmail.com"
                 }
             )
-            print(f"Notificación enviada a {user.username} con éxito.")
+            print(f"Notificación enviada a {user.username}")
         except WebPushException as ex:
-            print(f"Error al enviar la notificación a {user.username}: {ex}")
-    else:
-        print(
-            f"No se encontró una suscripción para el usuario {user.username}.")
+            print(f"Error al enviar push a {user.username}: {ex}")
+            #  Elimina suscripciones inválidas automáticamente
+            if "404" in str(ex) or "410" in str(ex):
+                try:
+                    subscription.delete()
+                    print(f"Suscripción inválida eliminada para {user.username}")
+                except DatabaseError as db_err:
+                    print(f"Error al eliminar suscripción: {db_err}")

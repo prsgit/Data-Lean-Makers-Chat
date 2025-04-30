@@ -171,7 +171,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 payload = {
                     "title": f"Mensaje de {display_name} en el grupo {self.group.name.replace('-', ' ').title()}",
                     "body": message if message else "Has recibido un archivo.",
-                    "icon": "/static/img/icono_app.png",
+                    "icon": "/static/img/icono_app_192.png",
                     "url": f"/chat/{self.group.name}/"
                 }
                 await database_sync_to_async(send_push_notification)(member, payload)
@@ -242,7 +242,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             payload = {
                 "title": f"Mensaje de {display_name}",
                 "body": message if message else "Has recibido un archivo.",
-                "icon": "/static/img/icono_app.png",
+                "icon": "/static/img/icono_app_192.png",
                 "url": f"/chat/{sender.username}/"
             }
             await database_sync_to_async(send_push_notification)(receiver, payload)
