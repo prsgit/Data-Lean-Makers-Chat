@@ -22,7 +22,7 @@
 
           <!-- Header -->
           <div class="py-2 px-3 bg-grey-lighter flex flex-row justify-between items-center">
-            <span>
+            <span class="text-gray-500">
               <strong>Usuario:</strong>
               <strong>
                 <a href="{% url 'appSMS:update_profile' %}" title="Perfil usuario"
@@ -40,15 +40,15 @@
                 {% has_perm request.user "restringir" as puede_crear_grupo %}
                 {% if not puede_crear_grupo %}
                   <a href="{% url 'appSMS:crear_grupo' %}" title="Crear Grupo">
-                    <i class="fa-solid fa-user-group fa-xl icon icono hover:text-wasabiIntenso transition duration-200"></i>
+                    <i class="fa-solid fa-user-group fa-xl icon icono hover:text-wasabiIntenso transition duration-200" style="color: #6b7280;"></i>
                   </a>
                 {% else %}
-                  <i class="fa-solid fa-user-group fa-xl icon icono cursor-not-allowed" title="Sin permiso para crear grupos"></i>
+                  <i class="fa-solid fa-user-group fa-xl icon icono cursor-not-allowed" style="color: #6b7280;" title="Sin permiso para crear grupos"></i>
                 {% endif %}
               </div>
               <div class="ml-4 relative">
                 <i id="menu-logout-btn"
-                  class="fa-solid fa-ellipsis-vertical cursor-pointer text-xl text-gray-700 hover:text-gray-900"
+                  class="fa-solid fa-ellipsis-vertical cursor-pointer text-xl text-gray-500 hover:text-gray-700"
                   onclick="toggleMenuOptions(event)"></i>
                 <!-- Menú desplegable -->
                 <div id="menu-options" class="absolute right-0 mt-2 bg-transparent shadow-md hidden p-0">
@@ -64,7 +64,7 @@
 
           <!-- Search -->
           <div class="py-2 px-2 bg-grey-lightest">
-            <input type="text" id="search-input" class="form-control w-full px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-wasabiIntenso"
+            <input type="text" id="search-input" class="form-control w-full px-2 py-2 text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-wasabiIntenso"
               placeholder="Buscar usuario o grupo..." />
           </div>
 
@@ -75,7 +75,7 @@
               <div class="ml-2 flex-1 py-3">
                 <ul class="list-unstyled chat-list mt-0 mb-0 space-y-2" id="group-list">
                   {% for group in groups %}
-                  <li class="clearfix {% if group == selected_group %}active{% endif %}">
+                  <li class="clearfix text-gray-500 {% if group == selected_group %}active{% endif %}">
                     <a href="{% url 'appSMS:chat_grupal' group_name=group.name %}"
                       class="w-full cursor-pointer chat-link clearfix flex items-center space-x-4 hover:bg-gray-200 rounded-lg transition duration-200 hover:no-underline focus:no-underline active:no-underline">
                       <div class="about relative w-12 h-12">
@@ -112,7 +112,7 @@
               <div class="ml-2 flex-1">
                 <ul class="list-unstyled chat-list space-y-2" id="user-list">
                   {% for user in users %}
-                  <li class="clearfix {% if user == other_user %}active{% endif %}">
+                  <li class="clearfix text-gray-500 {% if user == other_user %}active{% endif %}">
                     <a href="{% url 'appSMS:chat_privado' username=user.username %}"
                       class="w-full cursor-pointer chat-link clearfix flex items-center space-x-4 hover:bg-gray-200 rounded-lg transition duration-200 hover:no-underline focus:no-underline active:no-underline">
                       <div class="about relative w-12 h-12">
@@ -129,7 +129,7 @@
                       </div>
                       <div class="w-full flex items-center justify-between">
                         <div class="name border-b border-grey-lighter pb-2 w-full flex-1 min-w-0">
-                          {{ user.username }} {% if user.username == request.user.username %} (Tú){% endif %}
+                          {{ user|display_name }} {% if user.username == request.user.username %} (Tú){% endif %}
                         </div>
                       </div>
                     </a>
@@ -181,7 +181,7 @@
                 onerror="this.onerror=null; this.src='{{ MEDIA_URL }}group_avatars/default_group.png';" />
               {% endif %}
               <div class="ml-2">
-                <p class="text-grey-darkest">{{ group_display_name }}</p>
+                <p class="text-gray-500">{{ group_display_name }}</p>
 
                 <!-- <p class="text-grey-darker text-xs mt-1">
                                     para mostrar los usuarios del grupo(futuro)
@@ -190,13 +190,13 @@
 
               {% elif other_user %}
               <!-- Mostrar nombre del usuario en chat individual -->
-              <button id="back-to-contacts" class="mr-2 md:hidden text-gray-700 hover:text-gray-900">
+              <button id="back-to-contacts" class="mr-2 md:hidden text-gray-500 hover:text-gray-900">
                 <i class="fa-solid fa-chevron-left"></i>
               </button>
               <img class="w-10 h-10 rounded-full" src="{{ other_user.userprofile.avatar.url }}" alt="avatar"
                 onerror="this.onerror=null; this.src='{{ MEDIA_URL }}avatars/default.png';" />
               <div class="ml-2">
-                <p class="text-grey-darkest">{{ other_user.username }}</p>
+                <p class="text-gray-500">{{ other_user|display_name }}</p>
               </div>
 
               {% else %}
@@ -217,7 +217,7 @@
               <!-- Menú desplegable para "Vaciar Chat" -->
               <div class="ml-4 relative">
                 <i id="menu-vaciar_chat-btn"
-                  class="fa-solid fa-ellipsis-vertical cursor-pointer text-xl text-gray-700 hover:text-gray-900"
+                  class="fa-solid fa-ellipsis-vertical cursor-pointer text-xl text-gray-500 hover:text-gray-700"
                   onclick="toggleChatMenu(event)"></i>
 
                 <div id="chat-menu-options" class="absolute right-0 mt-2 bg-transparent shadow-md hidden p-0">
@@ -256,8 +256,8 @@
                   <div id="modal-backdrop"
                     class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex justify-center items-center">
                     <div class="bg-white rounded-lg shadow-md w-11/12 max-w-sm p-5">
-                      <h1 class="text-xl font-semibold text-gray-800">¿Desea eliminar todos los mensajes del chat?</h1>
-                      <p class="text-gray-600 mt-2">Esta acción no podrá deshacerse</p>
+                      <h1 class="text-xl font-semibold text-gray-500">¿Desea eliminar todos los mensajes del chat?</h1>
+                      <p class="text-gray-700 mt-2">Esta acción no podrá deshacerse</p>
                       <!-- Botones de acción -->
                       <div class="flex justify-end mt-4">
                         <button id="close-modal"
@@ -331,7 +331,7 @@
                     <!-- Menú desplegable -->
                     <div id="dropdownDots-{{ message.id }}"
                       class="z-50 hidden fixed bg-white divide-y divide-gray-100 rounded-lg shadow-md w-44 p-2">
-                      <ul class="py-2 text-sm text-gray-700">
+                      <ul class="py-2 text-sm text-gray-500">
                         <li>
                           <button onclick="openMessageDeleteModal('{{ message.id }}', 'forMe')"
                             class="block px-4 py-2 w-full text-left hover:bg-gray-200 whitespace-nowrap">
@@ -421,7 +421,7 @@
               </div>
             {% else %}
               <div class="flex-1 mx-2">
-                <input id="chat-message-input" class="form-control w-full border rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-wasabiIntenso" type="text"
+                <input id="chat-message-input" class="text-gray-500 form-control w-full border rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-wasabiIntenso" type="text"
                 name="content" placeholder="Escribe un mensaje..." autocomplete="off" />
               </div>
             {% endif %}
@@ -445,10 +445,10 @@
 <div id="message-delete-modal"
   class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex justify-center items-center">
   <div class="bg-white rounded-lg shadow-md w-11/12 max-w-sm p-5">
-    <h1 id="message-modal-title" class="text-xl font-semibold text-gray-800">
+    <h1 id="message-modal-title" class="text-xl font-semibold text-gray-500">
       ¿Desea eliminar este mensaje?
     </h1>
-    <p id="message-modal-text" class="text-gray-600 mt-2">
+    <p id="message-modal-text" class="text-gray-700 mt-2">
       Esta acción no podrá deshacerse.
     </p>
 

@@ -67,7 +67,7 @@ function appendMessage(sender, message, isMyMessage, messageId) {
      <div id="message-${messageId}" class="flex justify-end mb-2 items-center space-x-2">
         <!-- Contenedor del mensaje -->
         <div class="rounded-xl py-2 px-3 max-w-xs bg-wasabiClaro">
-            <p class="text-sm mt-1">${message}</p>
+            <pp class="text-sm mt-1">${message}</p>
             <p class="text-right text-xs text-gray-500 mt-1">${timeString}</p>
         </div>
 

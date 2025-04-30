@@ -1,5 +1,5 @@
 from django import template
-from appSMS.permissions import has_group_permission, has_permission 
+from appSMS.permissions import has_group_permission, has_permission, get_anonymous_role
 
 register = template.Library()
 
@@ -28,3 +28,23 @@ def alias_prefix(value):
     if value and "_" in value:
         return value.split("_")[0]
     return value
+
+
+
+@register.filter
+def display_name(user):
+    """
+    Devuelve el nombre del rol si el permiso 'anonimo' está activado.
+    Si no, devuelve user.username.
+    """
+    try:
+        if user:
+            role = get_anonymous_role(user)
+            if role and role.name and role.name.strip():
+                return role.name.strip()
+            if user.username:
+                return user.username
+    except Exception as e:
+        return getattr(user, "username", "[sin nombre]")
+
+    return "[sin nombre]"
